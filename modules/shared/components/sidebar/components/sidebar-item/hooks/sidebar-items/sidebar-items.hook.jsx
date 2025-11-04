@@ -1,8 +1,11 @@
 import {
 	DashboardOutlined,
-	PeopleOutlined,
-	QuizOutlined,
-	RememberMeOutlined,
+	FeedbackOutlined,
+	AssignmentOutlined,
+	TopicOutlined,
+	AddCommentOutlined,
+	HistoryOutlined,
+	SearchOutlined,
 } from "@mui/icons-material";
 import HeadphonesIcon from "modules/shared/icons/HeadphonesIcon";
 import {
@@ -21,28 +24,21 @@ function useAdminSidebarItems() {
 			label: "Dashboard",
 			icon: DashboardOutlined,
 			buttonProps: {
-				// path: sharedRoutes.adminUserManagement.index.path,
+				href: "/admin/dashboard",
 			},
 		},
 		{
-			label: "All Students",
-			icon: PeopleOutlined,
+			label: "Inquiries",
+			icon: AssignmentOutlined,
 			buttonProps: {
-				// path: sharedRoutes.students.index.path,
+				href: "/admin/inquiries",
 			},
 		},
 		{
-			label: "All Staff",
-			icon: RememberMeOutlined,
+			label: "Topics",
+			icon: TopicOutlined,
 			buttonProps: {
-				// path: sharedRoutes.adminUserManagement.index.path,
-			},
-		},
-		{
-			label: "Manage FAQs",
-			icon: QuizOutlined,
-			buttonProps: {
-				// path: sharedRoutes.adminBulkActions.path,
+				href: "/admin/topics",
 			},
 		},
 	];
@@ -52,7 +48,22 @@ function useAdminSidebarItems() {
  * @returns { import("modules/shared").SidebarItemProps[] } Sidebar items for student users
  */
 function useStudentSidebarItems() {
-	return [];
+	return [
+		{
+			label: "Home",
+			icon: HistoryOutlined,
+			buttonProps: {
+				href: "/student/home",
+			},
+		},
+		{
+			label: "Active Inquiries",
+			icon: SearchOutlined,
+			buttonProps: {
+				href: "/student/inquiries",
+			},
+		},
+	];
 }
 
 /**
