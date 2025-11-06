@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { useQueryClient } from "react-query";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
@@ -9,12 +10,6 @@ import TextField from "@mui/material/TextField";
 import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
-import Timeline from "@mui/material/Timeline";
-import TimelineItem from "@mui/material/TimelineItem";
-import TimelineSeparator from "@mui/material/TimelineSeparator";
-import TimelineConnector from "@mui/material/TimelineConnector";
-import TimelineContent from "@mui/material/TimelineContent";
-import TimelineDot from "@mui/material/TimelineDot";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ReplyIcon from "@mui/icons-material/Reply";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
@@ -26,31 +21,83 @@ import {
 	Loader,
 	LoadingButton,
 } from "modules/shared/components";
-import { mockInputsSimplified } from "modules/shared/shared.mock-data-v2";
+import {
+	useGetInputById,
+	useGetInputReplies,
+	useCreateInputReplyMutation,
+	useRequestRevealMutation,
+	getInputByIdQueryKey,
+	getInputRepliesQueryKey,
+} from "modules/input";
+import { withAdmin } from "modules/user";
+import { getApiErrorMessage } from "modules/shared/shared.utils";
+import {
+	Sentiment,
+	Tone,
+	InputStatus,
+	RevealStatus,
+} from "types/api";
+import {
+	SENTIMENT_COLORS,
+	TONE_LABELS,
+	INPUT_STATUS_COLORS,
+	REVEAL_STATUS_LABELS,
+} from "constants/enums";
 
-const getSeverityLabel = severity => {
-	if (severity === 3) return "HIGH";
-	if (severity === 2) return "MEDIUM";
-	return "LOW";
-};
-
-const getSeverityColor = severity => {
-	if (severity === 3) return "error";
-	if (severity === 2) return "warning";
-	return "success";
-};
-
-export default function InputDetailPage() {
+function InputDetailPage() {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const { inputId } = router.query;
 	const [replyText, setReplyText] = useState("");
-	const [isReplying, setIsReplying] = useState(false);
-	const [isRequestingReveal, setIsRequestingReveal] = useState(false);
 
-	// Mock: Find input
-	const input = mockInputsSimplified.find(i => i.id === inputId);
+	// Fetch input details
+	const { data: input, isLoading: inputLoading, isError: inputError } = useGetInputById(inputId, {
+		enabled: !!inputId,
+	});
 
-	if (!input) {
+	// Fetch input replies (conversation)
+	const { data: repliesData, isLoading: repliesLoading } = useGetInputReplies(inputId, {
+		enabled: !!inputId,
+	});
+
+	const replies = repliesData || [];
+
+	// Create reply mutation
+	const createReplyMutation = useCreateInputReplyMutation({
+		onSuccess: (response) => {
+			toast.success(response.message || "Reply sent successfully!");
+			setReplyText("");
+			queryClient.invalidateQueries(getInputRepliesQueryKey(inputId));
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "Failed to send reply"));
+		},
+	});
+
+	// Request reveal mutation
+	const requestRevealMutation = useRequestRevealMutation({
+		onSuccess: (response) => {
+			toast.success(response.message || "Identity reveal request sent!");
+			queryClient.invalidateQueries(getInputByIdQueryKey(inputId));
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "Failed to request identity reveal"));
+		},
+	});
+
+	// Loading state
+	if (inputLoading || !inputId) {
+		return (
+			<RootLayout>
+				<MainContainer>
+					<Loader />
+				</MainContainer>
+			</RootLayout>
+		);
+	}
+
+	// Error state
+	if (inputError || !input) {
 		return (
 			<RootLayout>
 				<MainContainer>
@@ -60,39 +107,33 @@ export default function InputDetailPage() {
 		);
 	}
 
-	const handleSendReply = async () => {
+	const handleSendReply = () => {
 		if (!replyText.trim()) {
 			toast.error("Please enter a reply message");
 			return;
 		}
 
-		setIsReplying(true);
-		// Mock API call
-		await new Promise(resolve => setTimeout(resolve, 1000));
-		setIsReplying(false);
-		toast.success("Reply sent successfully!");
-		setReplyText("");
+		createReplyMutation.mutate({
+			inputId,
+			body: replyText,
+		});
 	};
 
-	const handleRequestReveal = async () => {
-		if (input.identityRevealRequested) {
+	const handleRequestReveal = () => {
+		if (input.revealStatus && input.revealStatus !== RevealStatus.NotRequested) {
 			toast.info("Identity reveal already requested");
 			return;
 		}
 
 		if (
 			!confirm(
-				"Are you sure you want to request identity reveal for this input?",
+				"Are you sure you want to request identity reveal for this input?"
 			)
 		) {
 			return;
 		}
 
-		setIsRequestingReveal(true);
-		// Mock API call
-		await new Promise(resolve => setTimeout(resolve, 1000));
-		setIsRequestingReveal(false);
-		toast.success("Identity reveal request sent!");
+		requestRevealMutation.mutate({ inputId });
 	};
 
 	return (
@@ -110,19 +151,37 @@ export default function InputDetailPage() {
 
 					{/* Input Card */}
 					<Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-						<Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+						<Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
 							<Typography variant="caption" color="text.secondary">
 								{DateTime.fromISO(input.createdAt).toFormat(
 									"MMMM dd, yyyy 'at' hh:mm a",
 								)}
 							</Typography>
-							<Box sx={{ display: "flex", gap: 1 }}>
-								<Chip label={input.sentiment} size="small" color="primary" />
-								<Chip
-									label={getSeverityLabel(input.severity)}
-									size="small"
-									color={getSeverityColor(input.severity)}
-								/>
+							<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+								{input.status && (
+									<Chip
+										label={input.status}
+										size="small"
+										color={INPUT_STATUS_COLORS[input.status]}
+									/>
+								)}
+								{input.sentiment && (
+									<Chip
+										label={input.sentiment}
+										size="small"
+										color={SENTIMENT_COLORS[input.sentiment]}
+									/>
+								)}
+								{input.tone && (
+									<Chip
+										label={TONE_LABELS[input.tone] || input.tone}
+										size="small"
+										variant="outlined"
+									/>
+								)}
+								{input.isAnonymous && !input.revealedAt && (
+									<Chip label="Anonymous" size="small" variant="outlined" />
+								)}
 							</Box>
 						</Box>
 
@@ -130,84 +189,64 @@ export default function InputDetailPage() {
 							{input.body}
 						</Typography>
 
-						{/* Quality Metrics */}
-						<Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "grey.50" }}>
-							<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-								Quality Metrics
-							</Typography>
-							<Grid container spacing={2} sx={{ mt: 1 }}>
-								<Grid item xs={6} sm={3}>
-									<Box sx={{ textAlign: "center" }}>
-										<Typography variant="h5" fontWeight={600}>
-											{(parseFloat(input.urgencyPct) * 100).toFixed(0)}%
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											Urgency
-										</Typography>
-									</Box>
+						{/* AI Analysis Scores */}
+						{(input.qualityScore !== undefined || input.importanceScore !== undefined || input.urgencyScore !== undefined) && (
+							<Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "grey.50" }}>
+								<Typography variant="subtitle2" gutterBottom fontWeight={600}>
+									AI Analysis Scores
+								</Typography>
+								<Grid container spacing={2} sx={{ mt: 1 }}>
+									{input.qualityScore !== undefined && (
+										<Grid item xs={6} sm={4}>
+											<Box sx={{ textAlign: "center" }}>
+												<Typography variant="h5" fontWeight={600} color="primary.main">
+													{input.qualityScore}/10
+												</Typography>
+												<Typography variant="caption" color="text.secondary">
+													Quality
+												</Typography>
+											</Box>
+										</Grid>
+									)}
+									{input.importanceScore !== undefined && (
+										<Grid item xs={6} sm={4}>
+											<Box sx={{ textAlign: "center" }}>
+												<Typography variant="h5" fontWeight={600} color="warning.main">
+													{input.importanceScore}/10
+												</Typography>
+												<Typography variant="caption" color="text.secondary">
+													Importance
+												</Typography>
+											</Box>
+										</Grid>
+									)}
+									{input.urgencyScore !== undefined && (
+										<Grid item xs={6} sm={4}>
+											<Box sx={{ textAlign: "center" }}>
+												<Typography variant="h5" fontWeight={600} color="error.main">
+													{input.urgencyScore}/10
+												</Typography>
+												<Typography variant="caption" color="text.secondary">
+													Urgency
+												</Typography>
+											</Box>
+										</Grid>
+									)}
 								</Grid>
-								<Grid item xs={6} sm={3}>
-									<Box sx={{ textAlign: "center" }}>
-										<Typography variant="h5" fontWeight={600}>
-											{(parseFloat(input.importancePct) * 100).toFixed(0)}%
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											Importance
-										</Typography>
-									</Box>
-								</Grid>
-								<Grid item xs={6} sm={3}>
-									<Box sx={{ textAlign: "center" }}>
-										<Typography variant="h5" fontWeight={600}>
-											{(parseFloat(input.clarityPct) * 100).toFixed(0)}%
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											Clarity
-										</Typography>
-									</Box>
-								</Grid>
-								<Grid item xs={6} sm={3}>
-									<Box sx={{ textAlign: "center" }}>
-										<Typography variant="h5" fontWeight={600}>
-											{(parseFloat(input.qualityPct) * 100).toFixed(0)}%
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											Overall Quality
-										</Typography>
-									</Box>
-								</Grid>
-							</Grid>
+							</Paper>
+						)}
 
-							{/* Additional Info */}
-							<Box sx={{ mt: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
-								<Chip
-									label={`Score: ${input.score}`}
-									size="small"
-									color="primary"
-									variant="outlined"
-								/>
-								<Chip
-									label={`Tone: ${input.tone}`}
-									size="small"
-									variant="outlined"
-								/>
-							</Box>
-						</Paper>
-
+						{/* Input Type and Inquiry Link */}
 						<Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-							{/* Show AI theme only for general inputs */}
-							{input.type === "GENERAL" && input.aiTheme && (
+							{input.inquiryId && input.inquiryTitle && (
 								<Chip
-									label={`Theme: ${input.aiTheme}`}
+									label={`Response to: ${input.inquiryTitle}`}
 									size="small"
 									color="primary"
+									variant="outlined"
 								/>
 							)}
-
-							{input.type === "INQUIRY_LINKED" && input.inquiryTitle && (
-								<Chip label={`Inquiry: ${input.inquiryTitle}`} size="small" />
-							)}
-							{input.type === "GENERAL" && (
+							{!input.inquiryId && (
 								<Chip label="General Feedback" size="small" variant="outlined" />
 							)}
 						</Box>
@@ -215,43 +254,101 @@ export default function InputDetailPage() {
 						{/* Student Metadata */}
 						<Divider sx={{ my: 2 }} />
 						<Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-							<Box>
-								<Typography variant="caption" color="text.secondary">
-									Department
-								</Typography>
-								<Typography variant="body2">{input.department}</Typography>
-							</Box>
-							<Box>
-								<Typography variant="caption" color="text.secondary">
-									Program
-								</Typography>
-								<Typography variant="body2">{input.program}</Typography>
-							</Box>
-							<Box>
-								<Typography variant="caption" color="text.secondary">
-									Semester
-								</Typography>
-								<Typography variant="body2">{input.semester}</Typography>
-							</Box>
+							{input.department && (
+								<Box>
+									<Typography variant="caption" color="text.secondary">
+										Department
+									</Typography>
+									<Typography variant="body2">{input.department}</Typography>
+								</Box>
+							)}
+							{input.program && (
+								<Box>
+									<Typography variant="caption" color="text.secondary">
+										Program
+									</Typography>
+									<Typography variant="body2">{input.program}</Typography>
+								</Box>
+							)}
+							{input.semester && (
+								<Box>
+									<Typography variant="caption" color="text.secondary">
+										Semester
+									</Typography>
+									<Typography variant="body2">{input.semester}</Typography>
+								</Box>
+							)}
 							<Box>
 								<Typography variant="caption" color="text.secondary">
 									Identity Status
 								</Typography>
-								<Typography variant="body2" fontWeight={600}>
-									{input.identityRevealed ? "Revealed" : "Anonymous"}
-								</Typography>
+								<Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 0.5 }}>
+									<Typography variant="body2" fontWeight={600}>
+										{input.revealedAt ? "Revealed" : "Anonymous"}
+									</Typography>
+									{input.revealStatus && input.revealStatus !== RevealStatus.NotRequested && (
+										<Chip
+											label={REVEAL_STATUS_LABELS[input.revealStatus] || input.revealStatus}
+											size="small"
+											color={input.revealStatus === RevealStatus.Approved ? "success" : "warning"}
+										/>
+									)}
+								</Box>
+								{input.revealedAt && input.studentName && (
+									<Typography variant="caption" color="primary.main">
+										Student: {input.studentName}
+									</Typography>
+								)}
 							</Box>
 						</Box>
 					</Paper>
 
-					{/* Admin Actions */}
+					{/* Conversation Section */}
 					<Paper elevation={2} sx={{ p: 3, mb: 3 }}>
 						<Typography variant="h6" gutterBottom fontWeight={600}>
-							Admin Actions
+							Conversation
 						</Typography>
 
-						{/* Reply to Input */}
-						<Box sx={{ mb: 3 }}>
+						{/* Display replies */}
+						{repliesLoading ? (
+							<Box sx={{ py: 2 }}>
+								<Loader height="auto" />
+							</Box>
+						) : replies.length > 0 ? (
+							<Box sx={{ mb: 3 }}>
+								{replies.map((reply, index) => (
+									<Paper
+										key={reply.id || index}
+										variant="outlined"
+										sx={{
+											p: 2,
+											mb: 2,
+											bgcolor: reply.isAdmin ? "primary.50" : "grey.50",
+											borderLeft: 4,
+											borderLeftColor: reply.isAdmin ? "primary.main" : "grey.400",
+										}}
+									>
+										<Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+											<Typography variant="caption" fontWeight={600} color={reply.isAdmin ? "primary.main" : "text.secondary"}>
+												{reply.isAdmin ? "Admin" : (input.studentName || "Student")}
+											</Typography>
+											<Typography variant="caption" color="text.secondary">
+												{DateTime.fromISO(reply.createdAt).toFormat("MMM dd, yyyy 'at' hh:mm a")}
+											</Typography>
+										</Box>
+										<Typography variant="body2">{reply.body}</Typography>
+									</Paper>
+								))}
+							</Box>
+						) : (
+							<Alert severity="info" sx={{ mb: 3 }}>
+								No conversation yet. Start by sending a reply below.
+							</Alert>
+						)}
+
+						{/* Reply Form */}
+						<Divider sx={{ my: 2 }} />
+						<Box>
 							<Typography variant="subtitle2" gutterBottom>
 								Send Reply to Student
 							</Typography>
@@ -268,117 +365,45 @@ export default function InputDetailPage() {
 								variant="contained"
 								startIcon={<ReplyIcon />}
 								onClick={handleSendReply}
-								loading={isReplying}
+								loading={createReplyMutation.isLoading}
+								disabled={!replyText.trim()}
 							>
 								Send Reply
 							</LoadingButton>
 						</Box>
+					</Paper>
 
-						{/* Request Identity Reveal */}
-						<Box>
-							<Typography variant="subtitle2" gutterBottom>
-								Request Identity Reveal
+					{/* Admin Actions */}
+					{input.isAnonymous && !input.revealedAt && (
+						<Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+							<Typography variant="h6" gutterBottom fontWeight={600}>
+								Identity Management
 							</Typography>
-							<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-								Request the student to reveal their identity for this specific
-								feedback.
+							<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+								Request the student to reveal their identity for this feedback.
+								The student can approve or deny this request.
 							</Typography>
 							<LoadingButton
 								variant="outlined"
 								color="warning"
 								startIcon={<LockOpenIcon />}
 								onClick={handleRequestReveal}
-								loading={isRequestingReveal}
-								disabled={input.identityRevealRequested}
+								loading={requestRevealMutation.isLoading}
+								disabled={input.revealStatus && input.revealStatus !== RevealStatus.NotRequested}
 							>
-								{input.identityRevealRequested
-									? "Already Requested"
+								{input.revealStatus === RevealStatus.Pending
+									? "Request Pending - Awaiting Student Response"
+									: input.revealStatus === RevealStatus.Denied
+									? "Request Denied by Student"
 									: "Request Identity Reveal"}
 							</LoadingButton>
-						</Box>
-					</Paper>
+						</Paper>
+					)}
 
-					{/* History Timeline */}
-					<Paper elevation={2} sx={{ p: 3 }}>
-						<Typography variant="h6" gutterBottom fontWeight={600}>
-							Activity History
-						</Typography>
-
-						<Timeline>
-							{/* Input Created */}
-							<TimelineItem>
-								<TimelineSeparator>
-									<TimelineDot color="primary" />
-									<TimelineConnector />
-								</TimelineSeparator>
-								<TimelineContent>
-									<Typography variant="body2" fontWeight={600}>
-										Input Submitted
-									</Typography>
-									<Typography variant="caption" color="text.secondary">
-										{DateTime.fromISO(input.createdAt).toFormat(
-											"MMM dd, yyyy 'at' hh:mm a",
-										)}
-									</Typography>
-									<Typography variant="body2" color="text.secondary">
-										Student submitted this feedback
-									</Typography>
-								</TimelineContent>
-							</TimelineItem>
-
-							{/* Admin Reply */}
-							{input.adminReply && (
-								<TimelineItem>
-									<TimelineSeparator>
-										<TimelineDot color="success" />
-										<TimelineConnector />
-									</TimelineSeparator>
-									<TimelineContent>
-										<Typography variant="body2" fontWeight={600}>
-											Admin Reply Sent
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											{DateTime.fromISO(input.adminReply.repliedAt).toFormat(
-												"MMM dd, yyyy 'at' hh:mm a",
-											)}
-										</Typography>
-										<Paper variant="outlined" sx={{ p: 1.5, mt: 1, bgcolor: "grey.50" }}>
-											<Typography variant="body2">
-												{input.adminReply.message}
-											</Typography>
-											<Typography variant="caption" color="text.secondary">
-												By: {input.adminReply.repliedBy}
-											</Typography>
-										</Paper>
-									</TimelineContent>
-								</TimelineItem>
-							)}
-
-							{/* Identity Reveal Request */}
-							{input.identityRevealRequested && (
-								<TimelineItem>
-									<TimelineSeparator>
-										<TimelineDot color="warning" />
-									</TimelineSeparator>
-									<TimelineContent>
-										<Typography variant="body2" fontWeight={600}>
-											Identity Reveal Requested
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											{DateTime.fromISO(
-												input.identityRevealRequestedAt,
-											).toFormat("MMM dd, yyyy 'at' hh:mm a")}
-										</Typography>
-										<Typography variant="body2" color="text.secondary">
-											Waiting for student approval
-										</Typography>
-									</TimelineContent>
-								</TimelineItem>
-							)}
-						</Timeline>
-					</Paper>
 				</Box>
 			</MainContainer>
 		</RootLayout>
 	);
 }
+
+export default withAdmin(InputDetailPage);

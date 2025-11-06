@@ -5,19 +5,24 @@ import Paper from "@mui/material/Paper";
 import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
-import {
-	MainContainer,
-	Loader,
-	ImportanceBadge,
-	SentimentIndicator,
-	ThemeChip,
-} from "modules/shared/components";
-import { InputCard } from "modules/input/components";
+import { MainContainer, Loader } from "modules/shared/components";
 import { useGetDashboardStats } from "modules/input/apis";
+import { useGetInquiryStats } from "modules/inquiry/apis";
+import { useGetUserStats } from "modules/user/apis";
+import { useGetTopicStats } from "modules/topic/apis";
+import { withAdmin } from "modules/user";
+import { Sentiment } from "types/api";
 
-export default function AdminDashboardPage() {
+function AdminDashboardPage() {
 	const router = useRouter();
-	const { data: stats, isLoading, isError } = useGetDashboardStats();
+
+	// Fetch all stats
+	const { data: inputStats, isLoading: inputLoading, isError: inputError } = useGetDashboardStats();
+	const { data: inquiryStats, isLoading: inquiryLoading } = useGetInquiryStats();
+	const { data: userStats, isLoading: userLoading } = useGetUserStats();
+	const { data: topicStats, isLoading: topicLoading } = useGetTopicStats();
+
+	const isLoading = inputLoading || inquiryLoading || userLoading || topicLoading;
 
 	if (isLoading) {
 		return (
@@ -29,7 +34,7 @@ export default function AdminDashboardPage() {
 		);
 	}
 
-	if (isError) {
+	if (inputError) {
 		return (
 			<RootLayout>
 				<MainContainer>
@@ -53,20 +58,23 @@ export default function AdminDashboardPage() {
 							Dashboard & Analytics
 						</Typography>
 						<Typography variant="body1" color="text.secondary">
-							Overview of student feedback and AI-powered insights
+							Overview of student feedback and system statistics
 						</Typography>
 					</Box>
 
-					{/* Stats Cards */}
+					{/* Stats Cards Row 1 */}
 					<Grid container spacing={3} sx={{ mb: 4 }}>
 						{/* Total Inputs */}
 						<Grid item xs={12} sm={6} md={3}>
 							<Paper elevation={2} sx={{ p: 3 }}>
 								<Typography variant="caption" color="text.secondary">
-									Total Inputs
+									Total Feedback
 								</Typography>
 								<Typography variant="h4" fontWeight={700} color="primary.main">
-									{stats.totalInputs}
+									{inputStats?.totalInputs || 0}
+								</Typography>
+								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+									{inputStats?.generalInputs || 0} general, {inputStats?.inquiryLinkedInputs || 0} responses
 								</Typography>
 							</Paper>
 						</Grid>
@@ -78,188 +86,246 @@ export default function AdminDashboardPage() {
 									Total Inquiries
 								</Typography>
 								<Typography variant="h4" fontWeight={700}>
-									{stats.totalInquiries}
+									{inquiryStats?.totalInquiries || 0}
+								</Typography>
+								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+									{inquiryStats?.sentInquiries || 0} sent, {inquiryStats?.draftInquiries || 0} draft
 								</Typography>
 							</Paper>
 						</Grid>
 
-						{/* Active Inquiries */}
+						{/* Total Users */}
 						<Grid item xs={12} sm={6} md={3}>
 							<Paper elevation={2} sx={{ p: 3 }}>
 								<Typography variant="caption" color="text.secondary">
-									Active Inquiries
+									Total Users
 								</Typography>
 								<Typography variant="h4" fontWeight={700} color="success.main">
-									{stats.activeInquiries}
+									{userStats?.totalUsers || 0}
+								</Typography>
+								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+									{userStats?.totalAdmins || 0} admins, {userStats?.totalStudents || 0} students
 								</Typography>
 							</Paper>
 						</Grid>
 
-						{/* Processing Rate */}
+						{/* Total Topics */}
 						<Grid item xs={12} sm={6} md={3}>
 							<Paper elevation={2} sx={{ p: 3 }}>
 								<Typography variant="caption" color="text.secondary">
-									AI Processing Rate
+									Active Topics
 								</Typography>
 								<Typography variant="h4" fontWeight={700} color="primary.main">
-									{stats.processingRate}%
+									{topicStats?.activeTopics || 0}
+								</Typography>
+								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+									{topicStats?.totalInputsLinked || 0} inputs linked
 								</Typography>
 							</Paper>
 						</Grid>
 					</Grid>
 
-					{/* Sentiment & Importance Breakdown */}
+					{/* Stats Cards Row 2 - Input Status */}
 					<Grid container spacing={3} sx={{ mb: 4 }}>
-						{/* Sentiment Breakdown */}
+						<Grid item xs={12} sm={6} md={3}>
+							<Paper elevation={2} sx={{ p: 3, bgcolor: "warning.light" }}>
+								<Typography variant="caption" color="warning.dark">
+									Pending Review
+								</Typography>
+								<Typography variant="h4" fontWeight={700} color="warning.dark">
+									{inputStats?.pendingInputs || 0}
+								</Typography>
+							</Paper>
+						</Grid>
+
+						<Grid item xs={12} sm={6} md={3}>
+							<Paper elevation={2} sx={{ p: 3, bgcolor: "info.light" }}>
+								<Typography variant="caption" color="info.dark">
+									Under Review
+								</Typography>
+								<Typography variant="h4" fontWeight={700} color="info.dark">
+									{inputStats?.reviewedInputs || 0}
+								</Typography>
+							</Paper>
+						</Grid>
+
+						<Grid item xs={12} sm={6} md={3}>
+							<Paper elevation={2} sx={{ p: 3, bgcolor: "success.light" }}>
+								<Typography variant="caption" color="success.dark">
+									Resolved
+								</Typography>
+								<Typography variant="h4" fontWeight={700} color="success.dark">
+									{inputStats?.resolvedInputs || 0}
+								</Typography>
+							</Paper>
+						</Grid>
+
+						<Grid item xs={12} sm={6} md={3}>
+							<Paper elevation={2} sx={{ p: 3 }}>
+								<Typography variant="caption" color="text.secondary">
+									Avg Quality Score
+								</Typography>
+								<Typography variant="h4" fontWeight={700} color="primary.main">
+									{inputStats?.averageQualityScore?.toFixed(1) || "N/A"}
+								</Typography>
+							</Paper>
+						</Grid>
+					</Grid>
+
+					{/* Sentiment Distribution */}
+					<Grid container spacing={3} sx={{ mb: 4 }}>
 						<Grid item xs={12} md={6}>
 							<Paper elevation={2} sx={{ p: 3 }}>
 								<Typography variant="h6" gutterBottom fontWeight={600}>
 									Sentiment Distribution
 								</Typography>
 								<Box sx={{ mt: 2 }}>
-									{[
-										{ label: "Positive", count: stats.sentimentBreakdown.positive, sentiment: "POSITIVE" },
-										{ label: "Negative", count: stats.sentimentBreakdown.negative, sentiment: "NEGATIVE" },
-										{ label: "Neutral", count: stats.sentimentBreakdown.neutral, sentiment: "NEUTRAL" },
-										{ label: "Mixed", count: stats.sentimentBreakdown.mixed, sentiment: "MIXED" },
-									].map(item => (
-										<Box
-											key={item.label}
-											sx={{
-												display: "flex",
-												justifyContent: "space-between",
-												alignItems: "center",
-												mb: 2,
-											}}
-										>
-											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-												<SentimentIndicator sentiment={item.sentiment} variant="icon" />
-												<Typography variant="body2">{item.label}</Typography>
-											</Box>
-											<Typography variant="h6" fontWeight={600}>
-												{item.count}
-											</Typography>
+									<Box
+										sx={{
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+											mb: 2,
+										}}
+									>
+										<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+											<Box
+												sx={{
+													width: 16,
+													height: 16,
+													borderRadius: "50%",
+													bgcolor: "success.main",
+												}}
+											/>
+											<Typography variant="body2">Positive</Typography>
 										</Box>
-									))}
+										<Typography variant="h6" fontWeight={600}>
+											{inputStats?.positiveCount || 0}
+										</Typography>
+									</Box>
+
+									<Box
+										sx={{
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+											mb: 2,
+										}}
+									>
+										<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+											<Box
+												sx={{
+													width: 16,
+													height: 16,
+													borderRadius: "50%",
+													bgcolor: "grey.500",
+												}}
+											/>
+											<Typography variant="body2">Neutral</Typography>
+										</Box>
+										<Typography variant="h6" fontWeight={600}>
+											{inputStats?.neutralCount || 0}
+										</Typography>
+									</Box>
+
+									<Box
+										sx={{
+											display: "flex",
+											justifyContent: "space-between",
+											alignItems: "center",
+											mb: 2,
+										}}
+									>
+										<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+											<Box
+												sx={{
+													width: 16,
+													height: 16,
+													borderRadius: "50%",
+													bgcolor: "error.main",
+												}}
+											/>
+											<Typography variant="body2">Negative</Typography>
+										</Box>
+										<Typography variant="h6" fontWeight={600}>
+											{inputStats?.negativeCount || 0}
+										</Typography>
+									</Box>
 								</Box>
 							</Paper>
 						</Grid>
 
-						{/* Importance Breakdown */}
+						{/* Quick Actions */}
 						<Grid item xs={12} md={6}>
 							<Paper elevation={2} sx={{ p: 3 }}>
 								<Typography variant="h6" gutterBottom fontWeight={600}>
-									Priority Distribution
+									Quick Actions
 								</Typography>
-								<Box sx={{ mt: 2 }}>
-									{[
-										{ label: "High Priority", count: stats.importanceBreakdown.high, importance: "HIGH" },
-										{ label: "Medium Priority", count: stats.importanceBreakdown.medium, importance: "MEDIUM" },
-										{ label: "Low Priority", count: stats.importanceBreakdown.low, importance: "LOW" },
-									].map(item => (
-										<Box
-											key={item.label}
-											sx={{
-												display: "flex",
-												justifyContent: "space-between",
-												alignItems: "center",
-												mb: 2,
-											}}
-										>
-											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-												<ImportanceBadge importance={item.importance} />
-												<Typography variant="body2">{item.label}</Typography>
-											</Box>
-											<Typography variant="h6" fontWeight={600}>
-												{item.count}
-											</Typography>
-										</Box>
-									))}
+								<Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+									<Box
+										onClick={() => router.push("/admin/inquiries")}
+										sx={{
+											p: 2,
+											border: 1,
+											borderColor: "divider",
+											borderRadius: 1,
+											cursor: "pointer",
+											"&:hover": { bgcolor: "action.hover" },
+										}}
+									>
+										<Typography variant="body1" fontWeight={600}>
+											Manage Inquiries
+										</Typography>
+										<Typography variant="caption" color="text.secondary">
+											Create and send targeted inquiries to students
+										</Typography>
+									</Box>
+
+									<Box
+										onClick={() => router.push("/admin/inputs/[inputId]")}
+										sx={{
+											p: 2,
+											border: 1,
+											borderColor: "divider",
+											borderRadius: 1,
+											cursor: "pointer",
+											"&:hover": { bgcolor: "action.hover" },
+										}}
+									>
+										<Typography variant="body1" fontWeight={600}>
+											Review Feedback
+										</Typography>
+										<Typography variant="caption" color="text.secondary">
+											View and respond to student feedback
+										</Typography>
+									</Box>
+
+									<Box
+										onClick={() => router.push("/admin/topics")}
+										sx={{
+											p: 2,
+											border: 1,
+											borderColor: "divider",
+											borderRadius: 1,
+											cursor: "pointer",
+											"&:hover": { bgcolor: "action.hover" },
+										}}
+									>
+										<Typography variant="body1" fontWeight={600}>
+											Manage Topics
+										</Typography>
+										<Typography variant="caption" color="text.secondary">
+											Organize feedback into topics and themes
+										</Typography>
+									</Box>
 								</Box>
 							</Paper>
 						</Grid>
 					</Grid>
-
-					{/* Top Themes */}
-					<Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-						<Typography variant="h6" gutterBottom fontWeight={600}>
-							Top Themes
-						</Typography>
-						<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-							Most frequently occurring themes in student feedback
-						</Typography>
-						<Box sx={{ mt: 2 }}>
-							{stats.topThemes.map((item, index) => (
-								<Box
-									key={index}
-									sx={{
-										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-										mb: 2,
-									}}
-								>
-									<Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1 }}>
-										<Typography
-											variant="h6"
-											fontWeight={700}
-											color="text.secondary"
-											sx={{ minWidth: 30 }}
-										>
-											#{index + 1}
-										</Typography>
-										<ThemeChip theme={item.theme} />
-									</Box>
-									<Typography variant="h6" fontWeight={600}>
-										{item.count}
-									</Typography>
-								</Box>
-							))}
-						</Box>
-					</Paper>
-
-					{/* Department Breakdown */}
-					<Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-						<Typography variant="h6" gutterBottom fontWeight={600}>
-							Inputs by Department
-						</Typography>
-						<Box sx={{ mt: 2 }}>
-							{stats.departmentBreakdown.map((item, index) => (
-								<Box
-									key={index}
-									sx={{
-										display: "flex",
-										justifyContent: "space-between",
-										alignItems: "center",
-										mb: 2,
-									}}
-								>
-									<Typography variant="body2">{item.department}</Typography>
-									<Typography variant="h6" fontWeight={600}>
-										{item.count}
-									</Typography>
-								</Box>
-							))}
-						</Box>
-					</Paper>
-
-					{/* Recent Inputs */}
-					<Box>
-						<Typography variant="h6" gutterBottom fontWeight={600} sx={{ mb: 2 }}>
-							Recent Inputs
-						</Typography>
-						{stats.recentInputs.map(input => (
-							<InputCard
-								key={input.id}
-								input={input}
-								showAIAnalysis={true}
-								showInquiryLink={true}
-								onClick={() => router.push(`/admin/inputs/${input.id}`)}
-							/>
-						))}
-					</Box>
 				</Box>
 			</MainContainer>
 		</RootLayout>
 	);
 }
+
+export default withAdmin(AdminDashboardPage);
