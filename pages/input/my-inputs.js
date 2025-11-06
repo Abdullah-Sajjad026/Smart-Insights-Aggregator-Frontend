@@ -1,17 +1,31 @@
+import { useState } from "react";
 import { useRouter } from "next/router";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
+import Pagination from "@mui/material/Pagination";
 import AddIcon from "@mui/icons-material/Add";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
 import { MainContainer, Loader } from "modules/shared/components";
 import { InputCard } from "modules/input/components";
 import { useGetMyInputs } from "modules/input/apis";
+import { withStudent } from "modules/user";
+import { InputStatus } from "types/api";
 
-export default function MyInputsPage() {
+function MyInputsPage() {
 	const router = useRouter();
-	const { data, isLoading, isError } = useGetMyInputs();
+	const [page, setPage] = useState(1);
+	const [pageSize] = useState(10);
+
+	const { data, isLoading, isError } = useGetMyInputs({
+		page,
+		pageSize,
+	});
+
+	const handlePageChange = (event, newPage) => {
+		setPage(newPage);
+	};
 
 	return (
 		<RootLayout>
@@ -80,10 +94,10 @@ export default function MyInputsPage() {
 								</Box>
 								<Box>
 									<Typography variant="caption" color="text.secondary">
-										Processed
+										Resolved
 									</Typography>
 									<Typography variant="h6" fontWeight={600} color="success.main">
-										{data.data?.filter(i => i.status === "PROCESSED").length || 0}
+										{data.data?.filter(i => i.status === InputStatus.Resolved).length || 0}
 									</Typography>
 								</Box>
 								<Box>
@@ -91,24 +105,46 @@ export default function MyInputsPage() {
 										Pending
 									</Typography>
 									<Typography variant="h6" fontWeight={600} color="warning.main">
-										{data.data?.filter(i => i.status === "PENDING" || i.status === "PROCESSING")
-											.length || 0}
+										{data.data?.filter(i => i.status === InputStatus.Pending).length || 0}
 									</Typography>
 								</Box>
 							</Box>
 
 							{/* Inputs List */}
 							{data.data && data.data.length > 0 ? (
-								<Box>
-									{data.data.map(input => (
-										<InputCard
-											key={input.id}
-											input={input}
-											showAIAnalysis={true}
-											showInquiryLink={true}
-										/>
-									))}
-								</Box>
+								<>
+									<Box>
+										{data.data.map(input => (
+											<InputCard
+												key={input.id}
+												input={input}
+												showAIAnalysis={true}
+												showInquiryLink={true}
+											/>
+										))}
+									</Box>
+
+									{/* Pagination */}
+									{data.pagination && data.pagination.totalPages > 1 && (
+										<Box
+											sx={{
+												mt: 3,
+												display: "flex",
+												justifyContent: "center",
+											}}
+										>
+											<Pagination
+												count={data.pagination.totalPages}
+												page={page}
+												onChange={handlePageChange}
+												color="primary"
+												size="large"
+												showFirstButton
+												showLastButton
+											/>
+										</Box>
+									)}
+								</>
 							) : (
 								<Box
 									sx={{
@@ -139,3 +175,5 @@ export default function MyInputsPage() {
 		</RootLayout>
 	);
 }
+
+export default withStudent(MyInputsPage);

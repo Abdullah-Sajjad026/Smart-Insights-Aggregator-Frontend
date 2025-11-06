@@ -11,8 +11,9 @@ import { MainContainer } from "modules/shared/components";
 import { InputForm } from "modules/input/components";
 import { useSubmitInputMutation } from "modules/input/apis";
 import { getApiErrorMessage } from "modules/shared/shared.utils";
+import { withStudent } from "modules/user";
 
-export default function SubmitInputPage() {
+function SubmitInputPage() {
 	const router = useRouter();
 	const [showSuccess, setShowSuccess] = React.useState(false);
 
@@ -137,3 +138,5 @@ export default function SubmitInputPage() {
 		</RootLayout>
 	);
 }
+
+export default withStudent(SubmitInputPage);
