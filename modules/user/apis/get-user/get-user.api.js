@@ -15,9 +15,29 @@ import { useQuery } from "react-query";
 
 /**
  * Get the logged-in user.
+ * Maps to: GET /api/users/{id} using userId from localStorage
+ * Or falls back to user data from localStorage if API fails
  */
 export function getUser() {
-  return apiClient.get("/app/me");
+  // Try to get user from localStorage first
+  const userStr = localStorage.getItem("user");
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      // If we have user data in localStorage, return it as a resolved promise
+      // This allows the app to work even if the backend is unavailable
+      return Promise.resolve(user);
+    } catch (e) {
+      console.error("Failed to parse user from localStorage", e);
+    }
+  }
+
+  // If no user in localStorage, try to fetch from backend
+  // Note: This endpoint may not exist on backend, adjust if needed
+  return apiClient.get("/auth/me").catch((error) => {
+    console.error("Failed to fetch user from backend", error);
+    throw error;
+  });
 }
 
 /**

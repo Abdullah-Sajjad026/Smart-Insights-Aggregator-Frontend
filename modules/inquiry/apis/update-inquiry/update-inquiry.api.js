@@ -1,30 +1,31 @@
 // @ts-check
-import { useMutation } from "react-query";
-import { delay } from "modules/shared/shared.mock-data";
+import { useMutation, useQueryClient } from "react-query";
+import apiClient from "pages/api/AxiosInstance";
+import { toast } from "react-toastify";
+import { getApiErrorMessage } from "modules/shared";
 
 /**
- * Update an inquiry (mock API)
- * @param {Object} params
- * @param {string} params.inquiryId
- * @param {Object} params.data - Updated inquiry data
- * @returns {Promise<Object>}
+ * @typedef {import("../../../../types/api").UpdateInquiryRequest} UpdateInquiryRequest
  */
-export async function updateInquiry({ inquiryId, data }) {
-	// Simulate API delay
-	await delay(1000);
 
-	// Mock successful response
-	const mockResponse = {
-		success: true,
-		data: {
-			id: inquiryId,
-			...data,
-			updatedAt: new Date().toISOString(),
-		},
-		message: "Inquiry updated successfully!",
-	};
+/**
+ * @typedef {import("../../../../types/api").InquiryDto} InquiryDto
+ */
 
-	return mockResponse;
+/**
+ * @typedef {Object} UpdateInquiryParams
+ * @property {string} inquiryId
+ * @property {UpdateInquiryRequest} data
+ */
+
+/**
+ * Update an inquiry
+ * Maps to: PUT /api/inquiries/{id}
+ * @param {UpdateInquiryParams} params
+ * @returns {Promise<InquiryDto>}
+ */
+export function updateInquiry({ inquiryId, data }) {
+	return apiClient.put(`/inquiries/${inquiryId}`, data);
 }
 
 /**
@@ -34,12 +35,24 @@ export const getUpdateInquiryMutationKey = () => ["update-inquiry"];
 
 /**
  * React Query mutation hook for updating inquiry
- * @param {Object} props - Mutation options
+ * @param {import("react-query").UseMutationOptions<InquiryDto, import("axios").AxiosError, UpdateInquiryParams>} [options]
  */
-export function useUpdateInquiryMutation(props = {}) {
+export function useUpdateInquiryMutation(options = {}) {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: updateInquiry,
 		mutationKey: getUpdateInquiryMutationKey(),
-		...props,
+		onSuccess: (data, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["inquiries"] });
+			queryClient.invalidateQueries({ queryKey: ["inquiry", variables.inquiryId] });
+			toast.success("Inquiry updated successfully!");
+		},
+		onError: (error) => {
+			toast.error(
+				getApiErrorMessage(error, "Failed to update inquiry. Please try again."),
+			);
+		},
+		...options,
 	});
 }

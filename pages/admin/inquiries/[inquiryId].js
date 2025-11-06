@@ -8,16 +8,16 @@ import Tab from "@mui/material/Tab";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
 import Alert from "@mui/material/Alert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
 import { MainContainer, Loader } from "modules/shared/components";
-import {
-	mockInquiriesWithAnalysis,
-	mockInputsSimplified,
-} from "modules/shared/shared.mock-data-v2";
+import { useGetInquiryById } from "modules/inquiry";
+import { useGetAllInputs } from "modules/input";
+import { withAdmin } from "modules/user";
+import { InquiryStatus, Sentiment, InputStatus } from "types/api";
+import { INQUIRY_STATUS_LABELS, SENTIMENT_COLORS, INPUT_STATUS_COLORS } from "constants/enums";
 
 function TabPanel({ children, value, index }) {
 	return (
@@ -27,32 +27,40 @@ function TabPanel({ children, value, index }) {
 	);
 }
 
-const getSeverityLabel = severity => {
-	if (severity === 3) return "HIGH";
-	if (severity === 2) return "MEDIUM";
-	return "LOW";
-};
-
-const getSeverityColor = severity => {
-	if (severity === 3) return "error";
-	if (severity === 2) return "warning";
-	return "success";
-};
-
-export default function InquiryDetailPage() {
+function InquiryDetailPage() {
 	const router = useRouter();
 	const { inquiryId } = router.query;
 	const [activeTab, setActiveTab] = useState(0);
 
-	// Mock: Find inquiry
-	const inquiry = mockInquiriesWithAnalysis.find(
-		inq => inq.id === inquiryId,
-	);
-	const inquiryInputs = mockInputsSimplified.filter(
-		inp => inp.inquiryId === inquiryId,
-	);
+	// Fetch inquiry details
+	const { data: inquiry, isLoading: inquiryLoading, isError: inquiryError } = useGetInquiryById(inquiryId, {
+		enabled: !!inquiryId,
+	});
 
-	if (!inquiry) {
+	// Fetch inputs for this inquiry
+	const { data: inputsData, isLoading: inputsLoading } = useGetAllInputs({
+		inquiryId,
+		page: 1,
+		pageSize: 100,
+	}, {
+		enabled: !!inquiryId,
+	});
+
+	const inquiryInputs = inputsData?.data || [];
+
+	// Loading state
+	if (inquiryLoading || !inquiryId) {
+		return (
+			<RootLayout>
+				<MainContainer>
+					<Loader />
+				</MainContainer>
+			</RootLayout>
+		);
+	}
+
+	// Error state
+	if (inquiryError || !inquiry) {
 		return (
 			<RootLayout>
 				<MainContainer>
@@ -66,8 +74,18 @@ export default function InquiryDetailPage() {
 		router.push(`/admin/inputs/${inputId}`);
 	};
 
-	const executiveSummary = inquiry.aiSummary?.["Executive Summary"];
-	const suggestedActions = inquiry.aiSummary?.["Suggested Prioritized Actions"] || [];
+	const getStatusColor = (status) => {
+		switch (status) {
+			case InquiryStatus.Sent:
+				return "success";
+			case InquiryStatus.Draft:
+				return "warning";
+			case InquiryStatus.Closed:
+				return "default";
+			default:
+				return "default";
+		}
+	};
 
 	return (
 		<RootLayout>
@@ -86,11 +104,11 @@ export default function InquiryDetailPage() {
 					<Box sx={{ mb: 3 }}>
 						<Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
 							<Typography variant="h5" fontWeight={600}>
-								Inquiry Question
+								{inquiry.title || "Inquiry"}
 							</Typography>
 							<Chip
-								label={inquiry.status}
-								color={inquiry.status === "ACTIVE" ? "success" : "default"}
+								label={INQUIRY_STATUS_LABELS[inquiry.status] || inquiry.status}
+								color={getStatusColor(inquiry.status)}
 							/>
 						</Box>
 						<Paper variant="outlined" sx={{ p: 2, bgcolor: "grey.50" }}>
@@ -103,11 +121,11 @@ export default function InquiryDetailPage() {
 					{/* Tabs */}
 					<Paper elevation={2}>
 						<Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
-							<Tab label="Overview & AI Analysis" />
-							<Tab label={`Inputs (${inquiryInputs.length})`} />
+							<Tab label="Overview" />
+							<Tab label={`Responses (${inquiry.totalInputs || 0})`} />
 						</Tabs>
 
-						{/* Tab 1: Overview & AI Analysis */}
+						{/* Tab 1: Overview */}
 						<TabPanel value={activeTab} index={0}>
 							{/* Inquiry Details */}
 							<Box sx={{ mb: 4 }}>
@@ -115,294 +133,81 @@ export default function InquiryDetailPage() {
 									Inquiry Details
 								</Typography>
 								<Grid container spacing={2}>
-									<Grid item xs={12} sm={6} md={3}>
+									<Grid item xs={12} sm={6} md={4}>
 										<Typography variant="caption" color="text.secondary">
-											Start Date
+											Created Date
 										</Typography>
 										<Typography variant="body2">
-											{DateTime.fromISO(inquiry.startDate).toFormat("MMM dd, yyyy")}
+											{DateTime.fromISO(inquiry.createdAt).toFormat("MMM dd, yyyy 'at' hh:mm a")}
 										</Typography>
 									</Grid>
-									<Grid item xs={12} sm={6} md={3}>
-										<Typography variant="caption" color="text.secondary">
-											End Date
-										</Typography>
-										<Typography variant="body2">
-											{DateTime.fromISO(inquiry.endDate).toFormat("MMM dd, yyyy")}
-										</Typography>
-									</Grid>
-									<Grid item xs={12} sm={6} md={3}>
+									{inquiry.closedAt && (
+										<Grid item xs={12} sm={6} md={4}>
+											<Typography variant="caption" color="text.secondary">
+												Closed Date
+											</Typography>
+											<Typography variant="body2">
+												{DateTime.fromISO(inquiry.closedAt).toFormat("MMM dd, yyyy 'at' hh:mm a")}
+											</Typography>
+										</Grid>
+									)}
+									<Grid item xs={12} sm={6} md={4}>
 										<Typography variant="caption" color="text.secondary">
 											Total Responses
 										</Typography>
-										<Typography variant="h6" fontWeight={600}>
-											{inquiry.totalInputs}
-										</Typography>
-									</Grid>
-									<Grid item xs={12} sm={6} md={3}>
-										<Typography variant="caption" color="text.secondary">
-											Status
-										</Typography>
-										<Typography variant="body2" fontWeight={600}>
-											{inquiry.status}
+										<Typography variant="h6" fontWeight={600} color="primary.main">
+											{inquiry.totalInputs || 0}
 										</Typography>
 									</Grid>
 								</Grid>
 
 								{/* Target Audience */}
 								{inquiry.targetDepartments?.length > 0 && (
-									<Box sx={{ mt: 2 }}>
-										<Typography variant="caption" color="text.secondary">
+									<Box sx={{ mt: 3 }}>
+										<Typography variant="caption" color="text.secondary" display="block" gutterBottom>
 											Target Departments
 										</Typography>
-										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-											{inquiry.targetDepartments.map(dept => (
-												<Chip key={dept} label={dept} size="small" />
+										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+											{inquiry.targetDepartments.map((dept, idx) => (
+												<Chip key={idx} label={dept} size="small" color="primary" variant="outlined" />
 											))}
 										</Box>
 									</Box>
 								)}
 
-								{/* Engagement Metrics */}
-								{inquiry.engagementMetrics?.length > 0 && (
-									<Box sx={{ mt: 3 }}>
-										<Typography variant="caption" color="text.secondary" gutterBottom>
-											Engagement Trends
+								{inquiry.targetPrograms?.length > 0 && (
+									<Box sx={{ mt: 2 }}>
+										<Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+											Target Programs
 										</Typography>
-										<Grid container spacing={2} sx={{ mt: 0.5 }}>
-											{inquiry.engagementMetrics.map((metric, idx) => (
-												<Grid item xs={6} sm={3} key={idx}>
-													<Paper variant="outlined" sx={{ p: 1.5, textAlign: "center" }}>
-														<Typography variant="caption" color="text.secondary">
-															{DateTime.fromISO(metric.date).toFormat("MMM dd")}
-														</Typography>
-														<Typography variant="body2" fontWeight={600}>
-															{metric.responses} responses
-														</Typography>
-														<Typography variant="caption" color="text.secondary">
-															{metric.views} views
-														</Typography>
-													</Paper>
-												</Grid>
+										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+											{inquiry.targetPrograms.map((program, idx) => (
+												<Chip key={idx} label={program} size="small" color="secondary" variant="outlined" />
 											))}
-										</Grid>
+										</Box>
 									</Box>
 								)}
-							</Box>
 
-							<Divider sx={{ my: 3 }} />
-
-							{/* AI Analysis - Executive Summary Format */}
-							<Box sx={{ mb: 4 }}>
-								<Typography variant="h6" gutterBottom fontWeight={600}>
-									AI-Powered Aggregate Analysis
-								</Typography>
-								<Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-									Analysis of all {inquiry.totalInputs} responses
-								</Typography>
-
-								{/* Topics */}
-								{inquiry.aiSummary?.topics && (
-									<Paper variant="outlined" sx={{ p: 3, mb: 3, bgcolor: "primary.50" }}>
-										<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-											Key Topics Identified
+								{inquiry.targetSemesters?.length > 0 && (
+									<Box sx={{ mt: 2 }}>
+										<Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+											Target Semesters
 										</Typography>
-										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1 }}>
-											{inquiry.aiSummary.topics.map((topic, idx) => (
-												<Chip key={idx} label={topic} color="primary" />
+										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+											{inquiry.targetSemesters.map((semester, idx) => (
+												<Chip key={idx} label={semester} size="small" variant="outlined" />
 											))}
 										</Box>
-									</Paper>
-								)}
-
-								{/* Executive Summary */}
-								{executiveSummary && (
-									<>
-										{/* Headline Insight */}
-										{executiveSummary["Headline Insight"] && (
-											<Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-												<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-													Headline Insight
-												</Typography>
-												<Typography variant="body1" sx={{ mt: 1, fontWeight: 500 }}>
-													{executiveSummary["Headline Insight"]}
-												</Typography>
-											</Paper>
-										)}
-
-										{/* Response Mix */}
-										{executiveSummary["Response Mix"] && (
-											<Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-												<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-													Response Mix
-												</Typography>
-												<Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-													{executiveSummary["Response Mix"]}
-												</Typography>
-											</Paper>
-										)}
-
-										{/* Key Takeaways */}
-										{executiveSummary["Key Takeaways"] && (
-											<Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-												<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-													Key Takeaways
-												</Typography>
-												<Typography
-													variant="body2"
-													color="text.secondary"
-													sx={{ mt: 1, lineHeight: 1.8 }}
-												>
-													{executiveSummary["Key Takeaways"]}
-												</Typography>
-											</Paper>
-										)}
-
-										{/* Risks */}
-										{executiveSummary["Risks"] && (
-											<Paper
-												variant="outlined"
-												sx={{ p: 3, mb: 3, borderColor: "error.main", bgcolor: "error.50" }}
-											>
-												<Typography
-													variant="subtitle2"
-													gutterBottom
-													fontWeight={600}
-													color="error.dark"
-												>
-													Risks
-												</Typography>
-												<Typography
-													variant="body2"
-													sx={{ mt: 1, lineHeight: 1.8 }}
-													color="error.dark"
-												>
-													{executiveSummary["Risks"]}
-												</Typography>
-											</Paper>
-										)}
-
-										{/* Opportunities */}
-										{executiveSummary["Opportunities"] && (
-											<Paper
-												variant="outlined"
-												sx={{ p: 3, mb: 3, borderColor: "success.main", bgcolor: "success.50" }}
-											>
-												<Typography
-													variant="subtitle2"
-													gutterBottom
-													fontWeight={600}
-													color="success.dark"
-												>
-													Opportunities
-												</Typography>
-												<Typography
-													variant="body2"
-													sx={{ mt: 1, lineHeight: 1.8 }}
-													color="success.dark"
-												>
-													{executiveSummary["Opportunities"]}
-												</Typography>
-											</Paper>
-										)}
-									</>
-								)}
-
-								{/* Suggested Prioritized Actions */}
-								{suggestedActions.length > 0 && (
-									<Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-										<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-											Suggested Prioritized Actions
-										</Typography>
-										<Box sx={{ mt: 2 }}>
-											{suggestedActions.map((action, idx) => (
-												<Paper
-													key={idx}
-													variant="outlined"
-													sx={{ p: 2, mb: 2, bgcolor: "grey.50" }}
-												>
-													<Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-														<Chip
-															label={`#${idx + 1}`}
-															color="primary"
-															size="small"
-															sx={{ fontWeight: 600 }}
-														/>
-														<Typography variant="body1" fontWeight={600} sx={{ flex: 1 }}>
-															{action.Action}
-														</Typography>
-													</Box>
-
-													<Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-														<Chip label={`Impact: ${action.Impact}`} size="small" />
-														<Chip
-															label={`${action["Response Count"]} responses`}
-															size="small"
-															variant="outlined"
-														/>
-													</Box>
-
-													<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-														<strong>Supporting Reasoning:</strong> {action["Supporting Reasoning"]}
-													</Typography>
-
-													<Typography variant="body2" color="text.secondary">
-														<strong>Challenges:</strong> {action.Challenges}
-													</Typography>
-												</Paper>
-											))}
-										</Box>
-									</Paper>
-								)}
-
-								{/* Sentiment Distribution */}
-								{inquiry.aiSummary?.overallSentiment && (
-									<Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-										<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-											Sentiment Distribution
-										</Typography>
-										<Grid container spacing={2} sx={{ mt: 1 }}>
-											<Grid item xs={6} sm={3}>
-												<Box sx={{ textAlign: "center" }}>
-													<Typography variant="h4" color="success.main">
-														{inquiry.aiSummary.overallSentiment.positive}
-													</Typography>
-													<Typography variant="caption">Positive</Typography>
-												</Box>
-											</Grid>
-											<Grid item xs={6} sm={3}>
-												<Box sx={{ textAlign: "center" }}>
-													<Typography variant="h4" color="error.main">
-														{inquiry.aiSummary.overallSentiment.negative}
-													</Typography>
-													<Typography variant="caption">Negative</Typography>
-												</Box>
-											</Grid>
-											<Grid item xs={6} sm={3}>
-												<Box sx={{ textAlign: "center" }}>
-													<Typography variant="h4" color="text.secondary">
-														{inquiry.aiSummary.overallSentiment.neutral}
-													</Typography>
-													<Typography variant="caption">Neutral</Typography>
-												</Box>
-											</Grid>
-											<Grid item xs={6} sm={3}>
-												<Box sx={{ textAlign: "center" }}>
-													<Typography variant="h4" color="warning.main">
-														{inquiry.aiSummary.overallSentiment.mixed}
-													</Typography>
-													<Typography variant="caption">Mixed</Typography>
-												</Box>
-											</Grid>
-										</Grid>
-									</Paper>
+									</Box>
 								)}
 							</Box>
 						</TabPanel>
 
 						{/* Tab 2: Inputs */}
 						<TabPanel value={activeTab} index={1}>
-							{inquiryInputs.length > 0 ? (
+							{inputsLoading ? (
+								<Loader height="auto" />
+							) : inquiryInputs.length > 0 ? (
 								<Box>
 									{inquiryInputs.map(input => (
 										<Paper
@@ -416,19 +221,30 @@ export default function InquiryDetailPage() {
 											}}
 											onClick={() => handleInputClick(input.id)}
 										>
-											<Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+											<Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, flexWrap: "wrap", gap: 1 }}>
 												<Typography variant="caption" color="text.secondary">
 													{DateTime.fromISO(input.createdAt).toFormat(
 														"MMM dd, yyyy 'at' hh:mm a",
 													)}
 												</Typography>
 												<Box sx={{ display: "flex", gap: 1 }}>
-													<Chip label={input.sentiment} size="small" />
-													<Chip
-														label={getSeverityLabel(input.severity)}
-														size="small"
-														color={getSeverityColor(input.severity)}
-													/>
+													{input.sentiment && (
+														<Chip
+															label={input.sentiment}
+															size="small"
+															color={SENTIMENT_COLORS[input.sentiment]}
+														/>
+													)}
+													{input.status && (
+														<Chip
+															label={input.status}
+															size="small"
+															color={INPUT_STATUS_COLORS[input.status]}
+														/>
+													)}
+													{input.isAnonymous && (
+														<Chip label="Anonymous" size="small" variant="outlined" />
+													)}
 												</Box>
 											</Box>
 											<Typography variant="body2" sx={{ mb: 1 }}>
@@ -437,27 +253,33 @@ export default function InquiryDetailPage() {
 
 											{/* Quality Scores */}
 											<Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 2 }}>
-												<Chip
-													label={`Urgency: ${(parseFloat(input.urgencyPct) * 100).toFixed(0)}%`}
-													size="small"
-													variant="outlined"
-												/>
-												<Chip
-													label={`Importance: ${(parseFloat(input.importancePct) * 100).toFixed(0)}%`}
-													size="small"
-													variant="outlined"
-												/>
-												<Chip
-													label={`Quality: ${(parseFloat(input.qualityPct) * 100).toFixed(0)}%`}
-													size="small"
-													variant="outlined"
-												/>
+												{input.qualityScore !== undefined && (
+													<Chip
+														label={`Quality: ${input.qualityScore}/10`}
+														size="small"
+														variant="outlined"
+													/>
+												)}
+												{input.importanceScore !== undefined && (
+													<Chip
+														label={`Importance: ${input.importanceScore}/10`}
+														size="small"
+														variant="outlined"
+													/>
+												)}
+												{input.urgencyScore !== undefined && (
+													<Chip
+														label={`Urgency: ${input.urgencyScore}/10`}
+														size="small"
+														variant="outlined"
+													/>
+												)}
 											</Box>
 										</Paper>
 									))}
 								</Box>
 							) : (
-								<Alert severity="info">No inputs received yet for this inquiry.</Alert>
+								<Alert severity="info">No responses received yet for this inquiry.</Alert>
 							)}
 						</TabPanel>
 					</Paper>
@@ -466,3 +288,5 @@ export default function InquiryDetailPage() {
 		</RootLayout>
 	);
 }
+
+export default withAdmin(InquiryDetailPage);

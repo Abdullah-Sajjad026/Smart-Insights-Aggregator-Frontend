@@ -1,48 +1,39 @@
 // @ts-check
 import { useQuery } from "react-query";
-import {
-	delay,
-	paginateData,
-	mockInputs,
-} from "modules/shared/shared.mock-data";
 import { MY_INPUTS_STALE_TIME } from "../../input.config";
+import apiClient from "pages/api/AxiosInstance";
 
 /**
- * Get current user's inputs (mock API)
+ * @typedef {import("../../../../types/api").InputDto} InputDto
+ */
+
+/**
+ * @typedef {import("../../../../types/api").PaginatedResult} PaginatedResult
+ */
+
+/**
+ * Get current user's inputs (student's own feedback)
+ * Maps to: GET /api/inputs/my-inputs
  * @param {Object} params
  * @param {number} [params.page=1] - Page number
  * @param {number} [params.pageSize=25] - Items per page
- * @returns {Promise<Object>}
+ * @returns {Promise<PaginatedResult<InputDto>>}
  */
-export async function getMyInputs({ page = 1, pageSize = 25 } = {}) {
-	// Simulate API delay
-	await delay(800);
-
-	// Mock: Filter inputs for current user (in real app, backend handles this)
-	const userInputs = mockInputs.slice(0, 3); // Mock: show first 3 as user's inputs
-
-	const paginatedData = paginateData(userInputs, page, pageSize);
-
-	return {
-		success: true,
-		...paginatedData,
-	};
+export function getMyInputs({ page = 1, pageSize = 25 } = {}) {
+	return apiClient.get("/inputs/my-inputs", {
+		params: { page, pageSize },
+	});
 }
 
 /**
  * Get query key for my inputs
  */
-export const getMyInputsQueryKey = ({ page, pageSize } = {}) => [
-	"my-inputs",
-	{ page, pageSize },
-];
+export const getMyInputsQueryKey = (params) => ["my-inputs", params];
 
 /**
  * Select/transform query data
  */
-export const selectMyInputsQueryData = response => {
-	return response;
-};
+export const selectMyInputsQueryData = (response) => response;
 
 /**
  * React Query hook for getting user's inputs

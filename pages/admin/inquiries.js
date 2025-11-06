@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Pagination from "@mui/material/Pagination";
 import AddIcon from "@mui/icons-material/Add";
 import { toast } from "react-toastify";
 import { useQueryClient } from "react-query";
@@ -22,21 +23,24 @@ import {
 	useCreateInquiryMutation,
 	useDeleteInquiryMutation,
 	getInquiriesQueryKey,
-	INQUIRY_STATUS_ACTIVE,
-	INQUIRY_STATUS_DRAFT,
-	INQUIRY_STATUS_CLOSED,
 } from "modules/inquiry";
 import { getApiErrorMessage } from "modules/shared/shared.utils";
+import { InquiryStatus } from "types/api";
+import { withAdmin } from "modules/user";
 
-export default function AdminInquiriesPage() {
+function AdminInquiriesPage() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [statusFilter, setStatusFilter] = useState("");
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
+	const [page, setPage] = useState(1);
+	const [pageSize] = useState(10);
 
 	// Fetch inquiries
 	const { data, isLoading, isError } = useGetInquiries({
 		status: statusFilter,
+		page,
+		pageSize,
 	});
 
 	// Create inquiry mutation
@@ -65,6 +69,11 @@ export default function AdminInquiriesPage() {
 
 	const handleTabChange = (event, newValue) => {
 		setStatusFilter(newValue);
+		setPage(1); // Reset to first page when filter changes
+	};
+
+	const handlePageChange = (event, newPage) => {
+		setPage(newPage);
 	};
 
 	const handleCreate = data => {
@@ -117,9 +126,9 @@ export default function AdminInquiriesPage() {
 					<Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
 						<Tabs value={statusFilter} onChange={handleTabChange}>
 							<Tab label="All" value="" />
-							<Tab label="Active" value={INQUIRY_STATUS_ACTIVE} />
-							<Tab label="Draft" value={INQUIRY_STATUS_DRAFT} />
-							<Tab label="Closed" value={INQUIRY_STATUS_CLOSED} />
+							<Tab label="Sent" value={InquiryStatus.Sent} />
+							<Tab label="Draft" value={InquiryStatus.Draft} />
+							<Tab label="Closed" value={InquiryStatus.Closed} />
 						</Tabs>
 					</Box>
 
@@ -232,6 +241,27 @@ export default function AdminInquiriesPage() {
 									</Button>
 								</Box>
 							)}
+
+							{/* Pagination */}
+							{data?.pagination && data.pagination.totalPages > 1 && (
+								<Box
+									sx={{
+										mt: 4,
+										display: "flex",
+										justifyContent: "center",
+									}}
+								>
+									<Pagination
+										count={data.pagination.totalPages}
+										page={page}
+										onChange={handlePageChange}
+										color="primary"
+										size="large"
+										showFirstButton
+										showLastButton
+									/>
+								</Box>
+							)}
 						</>
 					)}
 				</Box>
@@ -247,3 +277,5 @@ export default function AdminInquiriesPage() {
 		</RootLayout>
 	);
 }
+
+export default withAdmin(AdminInquiriesPage);

@@ -24,8 +24,16 @@ const Error403 = dynamic(() => import("pages/403.jsx"), {
  *
  * @param { React.ComponentType<T> } Component The component to wrap.
  * @param { object } [options] The options for the HOC.
- * @param { import("modules/user/models").UserType } [options.userType] The type of user to check for.
- * @param { import("modules/user/models").UserType[] } [options.userTypes] The types of users to check for.
+ * @param { import("../../../../types/api").Role } [options.userType] The type of user to check for (use Role enum).
+ * @param { import("../../../../types/api").Role[] } [options.userTypes] The types of users to check for (use Role enum).
+ *
+ * @example
+ * // Require admin role
+ * export default withUser(AdminDashboard, { userType: Role.Admin });
+ *
+ * @example
+ * // Allow both admin and student
+ * export default withUser(ViewFeedback, { userTypes: [Role.Admin, Role.Student] });
  */
 export function withUser(Component, { userType, userTypes = [] } = {}) {
 	/**

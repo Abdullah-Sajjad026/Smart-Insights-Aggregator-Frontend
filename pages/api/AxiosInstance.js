@@ -23,7 +23,15 @@ apiClient.interceptors.request.use(
 );
 
 apiClient.interceptors.response.use(
-  (response) => response?.data,
+  (response) => {
+    // Backend wraps responses in { data, message, success }
+    // Return the inner data object for convenience
+    if (response?.data?.data !== undefined) {
+      return response.data.data;
+    }
+    // For responses without wrapper (like file downloads), return as is
+    return response?.data;
+  },
   (error) => {
     console.error({ error });
 
@@ -31,7 +39,7 @@ apiClient.interceptors.response.use(
       console.error("Request timeout");
     }
 
-    if (error.code === '"ERR_NETWORK"') {
+    if (error.code === "ERR_NETWORK" || error.code === '"ERR_NETWORK"') {
       toast.error(getManagedErrorMessage("network"));
       console.error("Network error");
     }

@@ -1,44 +1,25 @@
 // @ts-check
-import { useMutation } from "react-query";
-import { delay } from "modules/shared/shared.mock-data";
+import { useMutation, useQueryClient } from "react-query";
+import apiClient from "pages/api/AxiosInstance";
+import { toast } from "react-toastify";
+import { getApiErrorMessage } from "modules/shared";
 
 /**
- * Create a new inquiry (mock API)
- * @param {Object} data
- * @param {string} data.title
- * @param {string} data.description
- * @param {string} data.status
- * @param {string[]} data.targetDepartments
- * @param {string[]} data.targetPrograms
- * @param {string[]} data.targetSemesters
- * @param {string} data.startDate
- * @param {string} data.endDate
- * @returns {Promise<Object>}
+ * @typedef {import("../../../../types/api").CreateInquiryRequest} CreateInquiryRequest
  */
-export async function createInquiry(data) {
-	// Simulate API delay
-	await delay(1200);
 
-	// Mock successful response
-	const mockResponse = {
-		success: true,
-		data: {
-			id: `inq-${Date.now()}`,
-			...data,
-			totalInputs: 0,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			createdBy: "admin@kfueit.edu.pk",
-		},
-		message: "Inquiry created successfully!",
-	};
+/**
+ * @typedef {import("../../../../types/api").InquiryDto} InquiryDto
+ */
 
-	// Simulate occasional errors (5% chance)
-	if (Math.random() < 0.05) {
-		throw new Error("Failed to create inquiry. Please try again.");
-	}
-
-	return mockResponse;
+/**
+ * Create a new inquiry
+ * Maps to: POST /api/inquiries
+ * @param {CreateInquiryRequest} data
+ * @returns {Promise<InquiryDto>}
+ */
+export function createInquiry(data) {
+	return apiClient.post("/inquiries", data);
 }
 
 /**
@@ -48,12 +29,23 @@ export const getCreateInquiryMutationKey = () => ["create-inquiry"];
 
 /**
  * React Query mutation hook for creating inquiry
- * @param {Object} props - Mutation options
+ * @param {import("react-query").UseMutationOptions<InquiryDto, import("axios").AxiosError, CreateInquiryRequest>} [options]
  */
-export function useCreateInquiryMutation(props = {}) {
+export function useCreateInquiryMutation(options = {}) {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: createInquiry,
 		mutationKey: getCreateInquiryMutationKey(),
-		...props,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["inquiries"] });
+			toast.success("Inquiry created successfully!");
+		},
+		onError: (error) => {
+			toast.error(
+				getApiErrorMessage(error, "Failed to create inquiry. Please try again."),
+			);
+		},
+		...options,
 	});
 }

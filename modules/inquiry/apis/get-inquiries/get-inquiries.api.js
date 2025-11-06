@@ -1,42 +1,37 @@
 // @ts-check
 import { useQuery } from "react-query";
-import {
-	delay,
-	paginateData,
-	mockInquiries,
-} from "modules/shared/shared.mock-data";
 import { INQUIRY_STALE_TIME } from "../../inquiry.config";
+import apiClient from "pages/api/AxiosInstance";
 
 /**
- * Get all inquiries (mock API)
+ * @typedef {import("../../../../types/api").InquiryDto} InquiryDto
+ */
+
+/**
+ * @typedef {import("../../../../types/api").PaginatedResult} PaginatedResult
+ */
+
+/**
+ * Get all inquiries
+ * Maps to: GET /api/inquiries
  * @param {Object} params
  * @param {number} [params.page=1] - Page number
  * @param {number} [params.pageSize=25] - Items per page
  * @param {string} [params.status] - Filter by status
- * @returns {Promise<Object>}
+ * @param {string} [params.departmentId] - Filter by department
+ * @param {string} [params.createdById] - Filter by creator
+ * @returns {Promise<PaginatedResult<InquiryDto>>}
  */
-export async function getInquiries({
+export function getInquiries({
 	page = 1,
 	pageSize = 25,
 	status,
+	departmentId,
+	createdById,
 } = {}) {
-	// Simulate API delay
-	await delay(800);
-
-	// Filter by status if provided
-	let filteredInquiries = [...mockInquiries];
-	if (status) {
-		filteredInquiries = filteredInquiries.filter(
-			inq => inq.status === status,
-		);
-	}
-
-	const paginatedData = paginateData(filteredInquiries, page, pageSize);
-
-	return {
-		success: true,
-		...paginatedData,
-	};
+	return apiClient.get("/inquiries", {
+		params: { page, pageSize, status, departmentId, createdById },
+	});
 }
 
 /**

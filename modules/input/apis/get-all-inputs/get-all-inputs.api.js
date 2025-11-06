@@ -1,85 +1,43 @@
 // @ts-check
 import { useQuery } from "react-query";
-import {
-	delay,
-	paginateData,
-	mockInputs,
-} from "modules/shared/shared.mock-data";
 import { INPUT_STALE_TIME } from "../../input.config";
+import apiClient from "pages/api/AxiosInstance";
 
 /**
- * Get all inputs for admin (mock API)
- * @param {Object} params
- * @param {number} [params.page=1] - Page number
- * @param {number} [params.pageSize=25] - Items per page
- * @param {string} [params.inquiryId] - Filter by inquiry
- * @param {string} [params.sentiment] - Filter by sentiment
- * @param {string} [params.importance] - Filter by importance
- * @returns {Promise<Object>}
+ * @typedef {import("../../../../types/api").InputDto} InputDto
  */
-export async function getAllInputs({
-	page = 1,
-	pageSize = 25,
-	inquiryId,
-	sentiment,
-	importance,
-} = {}) {
-	// Simulate API delay
-	await delay(900);
 
-	// Filter inputs
-	let filteredInputs = [...mockInputs];
+/**
+ * @typedef {import("../../../../types/api").PaginatedResult} PaginatedResult
+ */
 
-	if (inquiryId) {
-		filteredInputs = filteredInputs.filter(input => input.inquiryId === inquiryId);
-	}
+/**
+ * @typedef {import("../../../../types/api").InputFilterDto} InputFilterDto
+ */
 
-	if (sentiment) {
-		filteredInputs = filteredInputs.filter(
-			input => input.aiAnalysis?.sentiment === sentiment,
-		);
-	}
-
-	if (importance) {
-		filteredInputs = filteredInputs.filter(
-			input => input.aiAnalysis?.importance === importance,
-		);
-	}
-
-	const paginatedData = paginateData(filteredInputs, page, pageSize);
-
-	return {
-		success: true,
-		...paginatedData,
-	};
+/**
+ * Get all inputs with filtering (admin)
+ * Maps to: GET /api/inputs/filter
+ * @param {InputFilterDto} params - Filter parameters
+ * @returns {Promise<PaginatedResult<InputDto>>}
+ */
+export function getAllInputs(params = {}) {
+	return apiClient.get("/inputs/filter", { params });
 }
 
 /**
  * Get query key for all inputs
  */
-export const getAllInputsQueryKey = ({
-	page,
-	pageSize,
-	inquiryId,
-	sentiment,
-	importance,
-} = {}) => ["all-inputs", { page, pageSize, inquiryId, sentiment, importance }];
+export const getAllInputsQueryKey = (params) => ["all-inputs", params];
 
 /**
  * Select/transform query data
  */
-export const selectAllInputsQueryData = response => {
-	return response;
-};
+export const selectAllInputsQueryData = (response) => response;
 
 /**
  * React Query hook for getting all inputs (admin)
- * @param {Object} params
- * @param {number} [params.page=1]
- * @param {number} [params.pageSize=25]
- * @param {string} [params.inquiryId]
- * @param {string} [params.sentiment]
- * @param {string} [params.importance]
+ * @param {InputFilterDto} params - Filter parameters
  * @param {Object} queryProps - Additional query options
  */
 export function useGetAllInputs(params = {}, queryProps = {}) {
