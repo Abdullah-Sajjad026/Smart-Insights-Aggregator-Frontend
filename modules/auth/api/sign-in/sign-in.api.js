@@ -5,12 +5,10 @@ import { useMutation } from "react-query";
  * @typedef {Object} SignInProps
  * @property {string} email
  * @property {string} password
- 
  */
 
 /**
- * @typedef {Object} SignInResponse
- * @property {string} token
+ * @typedef {import("../../../../types/api").LoginResponse} SignInResponse
  */
 
 /**
@@ -18,11 +16,13 @@ import { useMutation } from "react-query";
  */
 
 /**
- * API Description goes here
+ * Sign in user with email and password
+ * Maps to: POST /api/auth/login
  * @param { SignInProps } props
+ * @returns {Promise<SignInResponse>}
  */
 export function signIn({ email, password }) {
-  return apiClient.post("/app/login", { email, password });
+  return apiClient.post("/auth/login", { email, password });
 }
 
 /**

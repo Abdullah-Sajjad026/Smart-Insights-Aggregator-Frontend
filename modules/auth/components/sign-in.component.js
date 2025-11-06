@@ -33,8 +33,21 @@ const SignInComponent = () => {
 			);
 		},
 		onSuccess: res => {
-			localStorage.setItem("token", res.data.token);
-			localStorage.setItem("user", true);
+			// Store token
+			localStorage.setItem("token", res.token);
+
+			// Store full user info from LoginResponse
+			const userInfo = {
+				userId: res.userId,
+				email: res.email,
+				fullName: res.fullName,
+				role: res.role,
+				expiresAt: res.expiresAt,
+			};
+			localStorage.setItem("user", JSON.stringify(userInfo));
+
+			toast.success(`Welcome back, ${res.fullName}!`);
+
 			if (router.query.redirect) {
 				setTimeout(() => {
 					router.push(router.query.redirect);
