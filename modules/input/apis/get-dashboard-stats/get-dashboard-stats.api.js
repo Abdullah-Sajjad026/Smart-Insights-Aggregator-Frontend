@@ -1,20 +1,19 @@
 // @ts-check
 import { useQuery } from "react-query";
-import { delay, mockDashboardStats } from "modules/shared/shared.mock-data";
 import { INPUT_STALE_TIME } from "../../input.config";
+import apiClient from "pages/api/AxiosInstance";
 
 /**
- * Get dashboard statistics (mock API)
- * @returns {Promise<Object>}
+ * @typedef {import("../../../../types/api").InputStatsDto} InputStatsDto
  */
-export async function getDashboardStats() {
-	// Simulate API delay
-	await delay(700);
 
-	return {
-		success: true,
-		data: mockDashboardStats,
-	};
+/**
+ * Get input statistics for dashboard
+ * Maps to: GET /api/inputs/stats
+ * @returns {Promise<InputStatsDto>}
+ */
+export function getDashboardStats() {
+	return apiClient.get("/inputs/stats");
 }
 
 /**
@@ -25,9 +24,7 @@ export const getDashboardStatsQueryKey = () => ["dashboard-stats"];
 /**
  * Select/transform query data
  */
-export const selectDashboardStatsQueryData = response => {
-	return response.data;
-};
+export const selectDashboardStatsQueryData = (response) => response;
 
 /**
  * React Query hook for getting dashboard stats

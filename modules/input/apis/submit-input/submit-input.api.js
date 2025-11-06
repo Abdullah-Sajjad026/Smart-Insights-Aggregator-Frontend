@@ -1,38 +1,26 @@
 // @ts-check
-import { useMutation } from "react-query";
-import { delay } from "modules/shared/shared.mock-data";
+import { useMutation, useQueryClient } from "react-query";
+import apiClient from "pages/api/AxiosInstance";
+import { toast } from "react-toastify";
+import { getApiErrorMessage } from "modules/shared";
 
 /**
- * Submit a new input (mock API)
- * @param {Object} params
- * @param {string} params.body - Input text content
- * @param {string} [params.inquiryId] - Optional inquiry ID
- * @returns {Promise<Object>}
+ * @typedef {import("../../../../types/api").CreateInputRequest} CreateInputRequest
  */
-export async function submitInput({ body, inquiryId }) {
-	// Simulate API delay
-	await delay(1500);
 
-	// Mock successful response
-	const mockResponse = {
-		success: true,
-		data: {
-			id: `inp-${Date.now()}`,
-			body,
-			type: inquiryId ? "INQUIRY_LINKED" : "GENERAL",
-			inquiryId: inquiryId || null,
-			status: "PENDING",
-			createdAt: new Date().toISOString(),
-		},
-		message: "Your feedback has been submitted successfully!",
-	};
+/**
+ * @typedef {import("../../../../types/api").InputDto} InputDto
+ */
 
-	// Simulate occasional errors (10% chance)
-	if (Math.random() < 0.1) {
-		throw new Error("Failed to submit feedback. Please try again.");
-	}
-
-	return mockResponse;
+/**
+ * Submit a new input (feedback)
+ * Maps to: POST /api/inputs
+ * Anonymous submission is allowed (userId is optional)
+ * @param {CreateInputRequest} params
+ * @returns {Promise<InputDto>}
+ */
+export function submitInput(params) {
+	return apiClient.post("/inputs", params);
 }
 
 /**
@@ -42,12 +30,24 @@ export const getSubmitInputMutationKey = () => ["submit-input"];
 
 /**
  * React Query mutation hook for submitting input
- * @param {Object} props - Mutation options
+ * @param {import("react-query").UseMutationOptions<InputDto, import("axios").AxiosError, CreateInputRequest>} [options]
  */
-export function useSubmitInputMutation(props = {}) {
+export function useSubmitInputMutation(options = {}) {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: submitInput,
 		mutationKey: getSubmitInputMutationKey(),
-		...props,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["inputs"] });
+			queryClient.invalidateQueries({ queryKey: ["my-inputs"] });
+			toast.success("Your feedback has been submitted successfully!");
+		},
+		onError: (error) => {
+			toast.error(
+				getApiErrorMessage(error, "Failed to submit feedback. Please try again."),
+			);
+		},
+		...options,
 	});
 }
