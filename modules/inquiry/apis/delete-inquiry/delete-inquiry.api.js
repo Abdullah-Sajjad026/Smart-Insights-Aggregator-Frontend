@@ -1,21 +1,17 @@
 // @ts-check
-import { useMutation } from "react-query";
-import { delay } from "modules/shared/shared.mock-data";
+import { useMutation, useQueryClient } from "react-query";
+import apiClient from "pages/api/AxiosInstance";
+import { toast } from "react-toastify";
+import { getApiErrorMessage } from "modules/shared";
 
 /**
- * Delete an inquiry (mock API)
+ * Delete an inquiry
+ * Maps to: DELETE /api/inquiries/{id}
  * @param {string} inquiryId
- * @returns {Promise<Object>}
+ * @returns {Promise<void>}
  */
-export async function deleteInquiry(inquiryId) {
-	// Simulate API delay
-	await delay(800);
-
-	// Mock successful response
-	return {
-		success: true,
-		message: "Inquiry deleted successfully!",
-	};
+export function deleteInquiry(inquiryId) {
+	return apiClient.delete(`/inquiries/${inquiryId}`);
 }
 
 /**
@@ -25,12 +21,24 @@ export const getDeleteInquiryMutationKey = () => ["delete-inquiry"];
 
 /**
  * React Query mutation hook for deleting inquiry
- * @param {Object} props - Mutation options
+ * @param {import("react-query").UseMutationOptions<void, import("axios").AxiosError, string>} [options]
  */
-export function useDeleteInquiryMutation(props = {}) {
+export function useDeleteInquiryMutation(options = {}) {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: deleteInquiry,
 		mutationKey: getDeleteInquiryMutationKey(),
-		...props,
+		onSuccess: (data, inquiryId) => {
+			queryClient.invalidateQueries({ queryKey: ["inquiries"] });
+			queryClient.invalidateQueries({ queryKey: ["inquiry", inquiryId] });
+			toast.success("Inquiry deleted successfully!");
+		},
+		onError: (error) => {
+			toast.error(
+				getApiErrorMessage(error, "Failed to delete inquiry. Please try again."),
+			);
+		},
+		...options,
 	});
 }
