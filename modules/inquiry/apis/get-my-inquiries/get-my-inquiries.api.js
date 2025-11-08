@@ -34,7 +34,15 @@ export const getMyInquiriesQueryKey = (params) => ["my-inquiries", params];
 /**
  * Select/transform query data
  */
-export const selectMyInquiriesQueryData = (response) => response;
+export const selectMyInquiriesQueryData = (response) => ({
+	data: response.items,
+	pagination: {
+		totalItems: response.totalCount,
+		pageNumber: response.pageNumber,
+		pageSize: response.pageSize,
+		totalPages: response.totalPages,
+	},
+});
 
 /**
  * React Query hook for getting my inquiries

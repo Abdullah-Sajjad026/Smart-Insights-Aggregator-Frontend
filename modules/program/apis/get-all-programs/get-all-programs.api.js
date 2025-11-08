@@ -16,7 +16,15 @@ export function getAllPrograms(params = {}) {
 }
 
 export const getGetAllProgramsQueryKey = (params) => ["programs", "all", params];
-export const selectGetAllProgramsQueryData = (response) => response;
+export const selectGetAllProgramsQueryData = (response) => ({
+	data: response.items,
+	pagination: {
+		totalItems: response.totalCount,
+		pageNumber: response.pageNumber,
+		pageSize: response.pageSize,
+		totalPages: response.totalPages,
+	},
+});
 
 export function useGetAllPrograms(params = {}, queryProps = {}) {
 	return useQuery({

@@ -103,7 +103,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 			if (!updateData.password) {
 				delete updateData.password;
 			}
-			updateMutation.mutate({ userId: user.userId, data: updateData });
+			updateMutation.mutate({ id: user.id, data: updateData });
 		} else {
 			createMutation.mutate(data);
 		}
@@ -253,7 +253,7 @@ function AdminUsersPage() {
 
 	const handleDeleteClick = (user) => {
 		if (confirm(`Are you sure you want to delete user "${user.fullName}"?`)) {
-			deleteMutation.mutate(user.userId);
+			deleteMutation.mutate(user.id);
 		}
 	};
 
@@ -357,7 +357,7 @@ function AdminUsersPage() {
 											</TableHead>
 											<TableBody>
 												{data.data.map((user) => (
-													<TableRow key={user.userId} hover>
+													<TableRow key={user.id} hover>
 														<TableCell>
 															<Typography variant="body2" fontWeight={600}>
 																{user.fullName}

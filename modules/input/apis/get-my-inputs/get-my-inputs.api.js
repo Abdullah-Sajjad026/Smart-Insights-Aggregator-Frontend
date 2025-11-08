@@ -33,7 +33,15 @@ export const getMyInputsQueryKey = (params) => ["my-inputs", params];
 /**
  * Select/transform query data
  */
-export const selectMyInputsQueryData = (response) => response;
+export const selectMyInputsQueryData = (response) => ({
+	data: response.items,
+	pagination: {
+		totalItems: response.totalCount,
+		pageNumber: response.pageNumber,
+		pageSize: response.pageSize,
+		totalPages: response.totalPages,
+	},
+});
 
 /**
  * React Query hook for getting user's inputs

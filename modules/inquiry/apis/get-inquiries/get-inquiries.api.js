@@ -44,10 +44,17 @@ export const getInquiriesQueryKey = ({ page, pageSize, status } = {}) => [
 
 /**
  * Select/transform query data
+ * Transform PaginatedResult to match frontend expectations
  */
-export const selectInquiriesQueryData = response => {
-	return response;
-};
+export const selectInquiriesQueryData = response => ({
+	data: response.items,
+	pagination: {
+		totalItems: response.totalCount,
+		pageNumber: response.pageNumber,
+		pageSize: response.pageSize,
+		totalPages: response.totalPages,
+	},
+});
 
 /**
  * React Query hook for getting inquiries
