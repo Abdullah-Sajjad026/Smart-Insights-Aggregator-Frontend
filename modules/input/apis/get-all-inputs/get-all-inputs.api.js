@@ -33,7 +33,15 @@ export const getAllInputsQueryKey = (params) => ["all-inputs", params];
 /**
  * Select/transform query data
  */
-export const selectAllInputsQueryData = (response) => response;
+export const selectAllInputsQueryData = (response) => ({
+	data: response.items,
+	pagination: {
+		totalItems: response.totalCount,
+		pageNumber: response.pageNumber,
+		pageSize: response.pageSize,
+		totalPages: response.totalPages,
+	},
+});
 
 /**
  * React Query hook for getting all inputs (admin)

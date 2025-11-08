@@ -115,7 +115,7 @@ function InputDetailPage() {
 
 		createReplyMutation.mutate({
 			inputId,
-			body: replyText,
+			data: { message: replyText },
 		});
 	};
 

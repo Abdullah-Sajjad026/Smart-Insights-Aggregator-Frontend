@@ -26,7 +26,15 @@ export function getAllTopics(params = {}) {
 
 export const getGetAllTopicsQueryKey = (params) => ["topics", "all", params];
 
-export const selectGetAllTopicsQueryData = (response) => response;
+export const selectGetAllTopicsQueryData = (response) => ({
+	data: response.items,
+	pagination: {
+		totalItems: response.totalCount,
+		pageNumber: response.pageNumber,
+		pageSize: response.pageSize,
+		totalPages: response.totalPages,
+	},
+});
 
 export function useGetAllTopics(params = {}, queryProps = {}) {
 	return useQuery({
