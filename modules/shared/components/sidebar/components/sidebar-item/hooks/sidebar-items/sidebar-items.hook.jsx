@@ -6,6 +6,8 @@ import {
 	AddCommentOutlined,
 	HistoryOutlined,
 	SearchOutlined,
+	PeopleOutlined,
+	CommentOutlined,
 } from "@mui/icons-material";
 import HeadphonesIcon from "modules/shared/icons/HeadphonesIcon";
 import {
@@ -35,6 +37,20 @@ function useAdminSidebarItems() {
 			},
 		},
 		{
+			label: "Inputs",
+			icon: FeedbackOutlined,
+			buttonProps: {
+				href: "/admin/inputs",
+			},
+		},
+		{
+			label: "Users",
+			icon: PeopleOutlined,
+			buttonProps: {
+				href: "/admin/users",
+			},
+		},
+		{
 			label: "Topics",
 			icon: TopicOutlined,
 			buttonProps: {
@@ -51,9 +67,23 @@ function useStudentSidebarItems() {
 	return [
 		{
 			label: "Home",
-			icon: HistoryOutlined,
+			icon: DashboardOutlined,
 			buttonProps: {
 				href: "/student/home",
+			},
+		},
+		{
+			label: "Submit Feedback",
+			icon: AddCommentOutlined,
+			buttonProps: {
+				href: "/input/submit",
+			},
+		},
+		{
+			label: "My Submissions",
+			icon: HistoryOutlined,
+			buttonProps: {
+				href: "/input/my-inputs",
 			},
 		},
 		{
