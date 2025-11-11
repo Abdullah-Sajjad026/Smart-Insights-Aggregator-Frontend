@@ -25,8 +25,9 @@ export function getUser() {
     try {
       const user = JSON.parse(userStr);
       // If we have user data in localStorage, return it as a resolved promise
+      // wrapped in the same format as Axios response for consistency
       // This allows the app to work even if the backend is unavailable
-      return Promise.resolve(user);
+      return Promise.resolve({ data: user });
     } catch (e) {
       console.error("Failed to parse user from localStorage", e);
     }
