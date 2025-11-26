@@ -28,7 +28,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
 import { useQueryClient } from "react-query";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
@@ -40,6 +40,9 @@ import {
 	useDeleteUserMutation,
 	getAllUsersQueryKey,
 } from "modules/user";
+import { useGetAllDepartments } from "modules/department";
+import { useGetAllPrograms } from "modules/program";
+import { useGetAllSemesters } from "modules/semester";
 import { withAdmin } from "modules/user";
 import { getApiErrorMessage } from "modules/shared/shared.utils";
 import { Role } from "types/api";
@@ -50,12 +53,33 @@ const userSchema = z.object({
 	fullName: z.string().min(2, "Full name must be at least 2 characters"),
 	email: z.string().email("Invalid email address"),
 	role: z.nativeEnum(Role),
-	password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
+	password: z
+		.string()
+		.optional()
+		.or(z.literal("")),
+	departmentId: z.string().optional().nullable(),
+	programId: z.string().optional().nullable(),
+	semesterId: z.string().optional().nullable(),
 });
 
 function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	const isEdit = !!user;
 	const queryClient = useQueryClient();
+
+	// Fetch data for dropdowns
+	const { data: departmentsData } = useGetAllDepartments({
+		page: 1,
+		pageSize: 100,
+	});
+	const { data: programsData } = useGetAllPrograms({ page: 1, pageSize: 100 });
+	const { data: semestersData } = useGetAllSemesters({
+		page: 1,
+		pageSize: 100,
+	});
+
+	const departments = departmentsData?.data || [];
+	const programs = programsData?.data || [];
+	const semesters = semestersData?.data || [];
 
 	const {
 		control,
@@ -69,8 +93,14 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 			email: user?.email || "",
 			role: user?.role || Role.Student,
 			password: "",
+			departmentId: user?.departmentId || "",
+			programId: user?.programId || "",
+			semesterId: user?.semesterId || "",
 		},
 	});
+
+	const selectedRole = useWatch({ control, name: "role" });
+	const isStudent = selectedRole === Role.Student;
 
 	const createMutation = useCreateUserMutation({
 		onSuccess: (response) => {
@@ -97,15 +127,27 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	});
 
 	const onSubmit = (data) => {
+		// Clean up data based on role
+		const submissionData = { ...data };
+		if (submissionData.role !== Role.Student) {
+			submissionData.departmentId = null;
+			submissionData.programId = null;
+			submissionData.semesterId = null;
+		}
+
+		// Handle empty strings as nulls for optional fields
+		if (!submissionData.departmentId) submissionData.departmentId = null;
+		if (!submissionData.programId) submissionData.programId = null;
+		if (!submissionData.semesterId) submissionData.semesterId = null;
+
 		if (isEdit) {
 			// Remove password if empty (don't update password)
-			const updateData = { ...data };
-			if (!updateData.password) {
-				delete updateData.password;
+			if (!submissionData.password) {
+				delete submissionData.password;
 			}
-			updateMutation.mutate({ id: user.id, data: updateData });
+			updateMutation.mutate({ id: user.id, data: submissionData });
 		} else {
-			createMutation.mutate(data);
+			createMutation.mutate(submissionData);
 		}
 	};
 
@@ -171,21 +213,109 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 							)}
 						/>
 
-						<Controller
-							name="password"
-							control={control}
-							render={({ field }) => (
-								<TextField
-									{...field}
-									label={isEdit ? "New Password (leave blank to keep current)" : "Password"}
-									type="password"
-									fullWidth
-									error={!!errors.password}
-									helperText={errors.password?.message}
-									required={!isEdit}
+						{isStudent && (
+							<>
+								<Controller
+									name="departmentId"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											select
+											label="Department"
+											fullWidth
+											error={!!errors.departmentId}
+											helperText={errors.departmentId?.message}
+										>
+											<MenuItem value="">
+												<em>None</em>
+											</MenuItem>
+											{departments.map((dept) => (
+												<MenuItem key={dept.id} value={dept.id}>
+													{dept.name}
+												</MenuItem>
+											))}
+										</TextField>
+									)}
 								/>
-							)}
-						/>
+
+								<Controller
+									name="programId"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											select
+											label="Program"
+											fullWidth
+											error={!!errors.programId}
+											helperText={errors.programId?.message}
+										>
+											<MenuItem value="">
+												<em>None</em>
+											</MenuItem>
+											{programs.map((prog) => (
+												<MenuItem key={prog.id} value={prog.id}>
+													{prog.name}
+												</MenuItem>
+											))}
+										</TextField>
+									)}
+								/>
+
+								<Controller
+									name="semesterId"
+									control={control}
+									render={({ field }) => (
+										<TextField
+											{...field}
+											select
+											label="Semester"
+											fullWidth
+											error={!!errors.semesterId}
+											helperText={errors.semesterId?.message}
+										>
+											<MenuItem value="">
+												<em>None</em>
+											</MenuItem>
+											{semesters.map((sem) => (
+												<MenuItem key={sem.id} value={sem.id}>
+													{sem.name}
+												</MenuItem>
+											))}
+										</TextField>
+									)}
+								/>
+							</>
+						)}
+
+						{!isStudent && (
+							<Controller
+								name="password"
+								control={control}
+								render={({ field }) => (
+									<TextField
+										{...field}
+										label={
+											isEdit
+												? "New Password (leave blank to keep current)"
+												: "Password"
+										}
+										type="password"
+										fullWidth
+										error={!!errors.password}
+										helperText={errors.password?.message}
+										required={!isEdit}
+									/>
+								)}
+							/>
+						)}
+
+						{isStudent && !isEdit && (
+							<Alert severity="info">
+								An invite will be sent to the student to set their password.
+							</Alert>
+						)}
 					</Box>
 				</DialogContent>
 				<DialogActions>
@@ -195,7 +325,9 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 					<Button
 						type="submit"
 						variant="contained"
-						disabled={isLoading || createMutation.isLoading || updateMutation.isLoading}
+						disabled={
+							isLoading || createMutation.isLoading || updateMutation.isLoading
+						}
 					>
 						{isEdit ? "Update" : "Create"}
 					</Button>
@@ -378,7 +510,9 @@ function AdminUsersPage() {
 														<TableCell>
 															<Typography variant="caption" color="text.secondary">
 																{user.createdAt
-																	? DateTime.fromISO(user.createdAt).toFormat("MMM dd, yyyy")
+																	? DateTime.fromISO(user.createdAt).toFormat(
+																			"MMM dd, yyyy"
+																	  )
 																	: "N/A"}
 															</Typography>
 														</TableCell>

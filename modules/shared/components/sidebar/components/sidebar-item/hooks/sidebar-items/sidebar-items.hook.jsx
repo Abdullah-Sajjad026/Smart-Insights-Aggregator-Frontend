@@ -6,6 +6,9 @@ import {
 	AddCommentOutlined,
 	HistoryOutlined,
 	SearchOutlined,
+	PeopleOutlined,
+	CommentOutlined,
+	LogoutOutlined,
 } from "@mui/icons-material";
 import HeadphonesIcon from "modules/shared/icons/HeadphonesIcon";
 import {
@@ -24,21 +27,63 @@ function useAdminSidebarItems() {
 			label: "Dashboard",
 			icon: DashboardOutlined,
 			buttonProps: {
-				href: "/admin/dashboard",
+				path: "/admin/dashboard",
 			},
 		},
 		{
 			label: "Inquiries",
 			icon: AssignmentOutlined,
 			buttonProps: {
-				href: "/admin/inquiries",
+				path: "/admin/inquiries",
+			},
+		},
+		{
+			label: "Inputs",
+			icon: FeedbackOutlined,
+			buttonProps: {
+				path: "/admin/inputs",
+			},
+		},
+		{
+			label: "Users",
+			icon: PeopleOutlined,
+			buttonProps: {
+				path: "/admin/users",
 			},
 		},
 		{
 			label: "Topics",
 			icon: TopicOutlined,
 			buttonProps: {
-				href: "/admin/topics",
+				path: "/admin/topics",
+			},
+		},
+		{
+			label: "Departments",
+			icon: TopicOutlined, // Using TopicOutlined as placeholder, could be BusinessOutlined
+			buttonProps: {
+				path: "/admin/departments",
+			},
+		},
+		{
+			label: "Programs",
+			icon: TopicOutlined, // Using TopicOutlined as placeholder, could be SchoolOutlined
+			buttonProps: {
+				path: "/admin/programs",
+			},
+		},
+		{
+			label: "Semesters",
+			icon: TopicOutlined, // Using TopicOutlined as placeholder, could be CalendarTodayOutlined
+			buttonProps: {
+				path: "/admin/semesters",
+			},
+		},
+		{
+			label: "Monitoring",
+			icon: DashboardOutlined,
+			buttonProps: {
+				path: "/admin/monitoring",
 			},
 		},
 	];
@@ -51,16 +96,30 @@ function useStudentSidebarItems() {
 	return [
 		{
 			label: "Home",
+			icon: DashboardOutlined,
+			buttonProps: {
+				path: "/student/home",
+			},
+		},
+		{
+			label: "Submit Feedback",
+			icon: AddCommentOutlined,
+			buttonProps: {
+				path: "/input/submit",
+			},
+		},
+		{
+			label: "My Submissions",
 			icon: HistoryOutlined,
 			buttonProps: {
-				href: "/student/home",
+				path: "/input/my-inputs",
 			},
 		},
 		{
 			label: "Active Inquiries",
 			icon: SearchOutlined,
 			buttonProps: {
-				href: "/student/inquiries",
+				path: "/student/inquiries",
 			},
 		},
 	];
@@ -100,6 +159,16 @@ export function useSidebarItems({ user = {} }) {
 			icon: HeadphonesIcon,
 			buttonProps: {
 				// onClick: openHelpDialog,
+			},
+		},
+		{
+			label: "Logout",
+			icon: LogoutOutlined,
+			buttonProps: {
+				onClick: () => {
+					localStorage.removeItem("token");
+					window.location.href = "/auth/sign-in";
+				},
 			},
 		},
 	];

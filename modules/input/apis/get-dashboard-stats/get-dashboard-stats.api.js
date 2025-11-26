@@ -24,7 +24,33 @@ export const getDashboardStatsQueryKey = () => ["dashboard-stats"];
 /**
  * Select/transform query data
  */
-export const selectDashboardStatsQueryData = (response) => response;
+export const selectDashboardStatsQueryData = (response) => {
+	if (!response) return null;
+
+	const { ByType = {}, ByStatus = {}, BySentiment = {}, AverageQualityScore = 0 } = response;
+
+	// Calculate totals
+	const totalInputs = Object.values(ByType).reduce((a, b) => a + b, 0);
+
+	return {
+		totalInputs,
+		generalInputs: ByType.General || 0,
+		inquiryLinkedInputs: ByType.InquiryResponse || 0,
+
+		// Status counts
+		pendingInputs: ByStatus.Pending || 0,
+		reviewedInputs: ByStatus.UnderReview || 0,
+		resolvedInputs: ByStatus.Resolved || 0,
+
+		// Sentiment counts
+		positiveCount: BySentiment.Positive || 0,
+		neutralCount: BySentiment.Neutral || 0,
+		negativeCount: BySentiment.Negative || 0,
+
+		// Average quality score
+		averageQualityScore: AverageQualityScore
+	};
+};
 
 /**
  * React Query hook for getting dashboard stats

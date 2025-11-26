@@ -1,21 +1,36 @@
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 import { Typography } from "@mui/material";
-import { MainContainer, RootLayout } from "modules/shared";
+import { MainContainer, RootLayout, Loader } from "modules/shared";
+import { useUser, userTypeAdmin, userTypeStudent } from "modules/user";
 
 function PageContent() {
-	// const { user } = useUserContext();
-	// const router = useRouter();
+	const router = useRouter();
+	const { user, isLoading } = useUser();
 
-	// Redirect to the dashboard
-	// if (user.role === userTypeStudent)
-	// 	router.push(sharedRoutes.applications.myApplications.path);
-	// else router.push(sharedRoutes.clients.index.path);
+	// Redirect to role-specific dashboard
+	useEffect(() => {
+		if (!isLoading && user) {
+			if (user.role === userTypeAdmin) {
+				router.push("/admin/dashboard");
+			} else if (user.role === userTypeStudent) {
+				router.push("/student/home");
+			}
+		}
+	}, [user, isLoading, router]);
 
+	// Show loader while checking auth or redirecting
+	if (isLoading || user) {
+		return <Loader />;
+	}
+
+	// If no user, show landing page
 	return (
 		<>
-			<Typography variant="h1">Volt</Typography>
-			<Typography variant="h2">Next.js + MUI + React Query</Typography>
+			<Typography variant="h1">Smart Insights Aggregator</Typography>
+			<Typography variant="h2">University Feedback Management System</Typography>
 			<Typography variant="h3">
-				Starter Kit with User Module for Dashboards
+				Please sign in to access your dashboard
 			</Typography>
 		</>
 	);

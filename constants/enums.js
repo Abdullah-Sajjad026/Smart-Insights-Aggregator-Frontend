@@ -53,6 +53,13 @@ export const INPUT_STATUS_LABELS = {
 	[InputStatus.Archived]: "Archived",
 };
 
+export const INPUT_STATUS_COLORS = {
+	[InputStatus.Pending]: "warning",
+	[InputStatus.Reviewed]: "info",
+	[InputStatus.Resolved]: "success",
+	[InputStatus.Archived]: "default",
+};
+
 export const inputStatusOptions = [
 	{ value: InputStatus.Pending, label: INPUT_STATUS_LABELS[InputStatus.Pending] },
 	{ value: InputStatus.Reviewed, label: INPUT_STATUS_LABELS[InputStatus.Reviewed] },
