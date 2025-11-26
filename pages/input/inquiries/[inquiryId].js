@@ -15,7 +15,9 @@ import { getApiErrorMessage } from "modules/shared/shared.utils";
 import { DateTime } from "luxon";
 import { useState } from "react";
 
-export default function InquiryDetailPage() {
+import { withStudent } from "modules/user";
+
+function InquiryDetailPage() {
 	const router = useRouter();
 	const { inquiryId } = router.query;
 	const [showSuccess, setShowSuccess] = useState(false);
@@ -50,17 +52,19 @@ export default function InquiryDetailPage() {
 	});
 
 	const handleSubmit = data => {
-		submitInputMutation.mutate({ ...data, inquiryId });
+		if (inquiry?.id) {
+			submitInputMutation.mutate({ ...data, inquiryId: inquiry.id });
+		}
 	};
 
 	const handleGoBack = () => {
-		router.push("/input/inquiries");
+		router.push("/student/inquiries");
 	};
 
 	// Check if inquiry is still active
-	const isActive = inquiry?.status === "ACTIVE";
-	const isPastDeadline = inquiry?.endDate
-		? DateTime.fromISO(inquiry.endDate) < DateTime.now()
+	const isActive = inquiry?.status?.toUpperCase() === "ACTIVE";
+	const isPastDeadline = inquiry?.closedAt
+		? DateTime.fromISO(inquiry.closedAt) < DateTime.now()
 		: false;
 	const canSubmit = isActive && !isPastDeadline;
 
@@ -94,10 +98,10 @@ export default function InquiryDetailPage() {
 							{/* Page Header */}
 							<Box sx={{ mb: 4 }}>
 								<Typography variant="h4" gutterBottom fontWeight={600}>
-									{inquiry.title}
+									Inquiry Details
 								</Typography>
 								<Typography variant="body1" color="text.secondary">
-									{inquiry.description}
+									{inquiry.body || "No details provided for this inquiry."}
 								</Typography>
 							</Box>
 
@@ -121,25 +125,27 @@ export default function InquiryDetailPage() {
 										{inquiry.status}
 									</Typography>
 								</Box>
-								<Box>
-									<Typography variant="caption" color="text.secondary">
-										End Date
-									</Typography>
-									<Typography
-										variant="body2"
-										fontWeight={600}
-										color={isPastDeadline ? "error.main" : "inherit"}
-									>
-										{DateTime.fromISO(inquiry.endDate).toFormat("MMM dd, yyyy")}
-										{isPastDeadline && " (Expired)"}
-									</Typography>
-								</Box>
+								{inquiry.closedAt && (
+									<Box>
+										<Typography variant="caption" color="text.secondary">
+											Closed Date
+										</Typography>
+										<Typography
+											variant="body2"
+											fontWeight={600}
+											color={isPastDeadline ? "error.main" : "inherit"}
+										>
+											{DateTime.fromISO(inquiry.closedAt).toFormat("MMM dd, yyyy")}
+											{isPastDeadline && " (Expired)"}
+										</Typography>
+									</Box>
+								)}
 								<Box>
 									<Typography variant="caption" color="text.secondary">
 										Total Responses
 									</Typography>
 									<Typography variant="body2" fontWeight={600}>
-										{inquiry.totalInputs || 0}
+										{inquiry.stats?.totalResponses || 0}
 									</Typography>
 								</Box>
 							</Box>
@@ -194,10 +200,10 @@ export default function InquiryDetailPage() {
 									}}
 								>
 									<InputForm
-										inquiryId={inquiryId}
+										inquiryId={inquiry.id}
 										inquiryDetails={{
-											title: inquiry.title,
-											description: inquiry.description,
+											title: "Response to Inquiry",
+											description: inquiry.body || "No details provided for this inquiry.",
 										}}
 										onSubmit={handleSubmit}
 										isLoading={submitInputMutation.isLoading}
@@ -219,3 +225,5 @@ export default function InquiryDetailPage() {
 		</RootLayout>
 	);
 }
+
+export default withStudent(InquiryDetailPage);

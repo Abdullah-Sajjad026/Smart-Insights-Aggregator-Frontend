@@ -1,26 +1,21 @@
 // @ts-check
 import { useQuery } from "react-query";
-import { delay, mockInquiries } from "modules/shared/shared.mock-data";
 import { INPUT_STALE_TIME } from "../../input.config";
+import apiClient from "pages/api/AxiosInstance";
 
 /**
- * Get active inquiries available to current user (mock API)
- * @returns {Promise<Object>}
+ * @typedef {import("../../../../types/api").InquiryDto} InquiryDto
  */
-export async function getActiveInquiries() {
-	// Simulate API delay
-	await delay(600);
 
-	// Mock: Filter only active inquiries
-	const activeInquiries = mockInquiries.filter(
-		inquiry => inquiry.status === "ACTIVE",
-	);
-
-	return {
-		success: true,
-		data: activeInquiries,
-		total: activeInquiries.length,
-	};
+/**
+ * Get active inquiries available to current user
+ * Maps to: GET /api/inquiries?status=Active
+ * @returns {Promise<InquiryDto[]>}
+ */
+export function getActiveInquiries() {
+	return apiClient.get("/inquiries", {
+		params: { status: "Active", pageSize: 100 }
+	});
 }
 
 /**
@@ -30,9 +25,10 @@ export const getActiveInquiriesQueryKey = () => ["active-inquiries"];
 
 /**
  * Select/transform query data
+ * Extract items from paginated response
  */
 export const selectActiveInquiriesQueryData = response => {
-	return response.data;
+	return response.items || [];
 };
 
 /**

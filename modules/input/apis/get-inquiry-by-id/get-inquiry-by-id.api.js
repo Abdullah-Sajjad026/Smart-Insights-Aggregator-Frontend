@@ -1,28 +1,10 @@
 // @ts-check
 import { useQuery } from "react-query";
-import { delay, mockInquiries } from "modules/shared/shared.mock-data";
+import apiClient from "pages/api/AxiosInstance";
 import { INPUT_STALE_TIME } from "../../input.config";
-
-/**
- * Get inquiry by ID (mock API)
- * @param {string} inquiryId
- * @returns {Promise<Object>}
- */
 export async function getInquiryById(inquiryId) {
-	// Simulate API delay
-	await delay(500);
-
-	// Mock: Find inquiry by ID
-	const inquiry = mockInquiries.find(inq => inq.id === inquiryId);
-
-	if (!inquiry) {
-		throw new Error("Inquiry not found");
-	}
-
-	return {
-		success: true,
-		data: inquiry,
-	};
+	const response = await apiClient.get(`/inquiries/${inquiryId}`);
+	return response;
 }
 
 /**
@@ -34,7 +16,7 @@ export const getInquiryByIdQueryKey = inquiryId => ["inquiry", inquiryId];
  * Select/transform query data
  */
 export const selectInquiryByIdQueryData = response => {
-	return response.data;
+	return response;
 };
 
 /**

@@ -28,12 +28,12 @@ export function getAllInputs(params = {}) {
 /**
  * Get query key for all inputs
  */
-export const getAllInputsQueryKey = (params) => ["all-inputs", params];
+export const getAllInputsQueryKey = params => ["all-inputs", params];
 
 /**
  * Select/transform query data
  */
-export const selectAllInputsQueryData = (response) => ({
+export const selectAllInputsQueryData = response => ({
 	data: response.items,
 	pagination: {
 		totalItems: response.totalCount,

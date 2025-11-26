@@ -14,7 +14,7 @@ import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
 import { MainContainer, Loader } from "modules/shared/components";
 import { useGetInquiryById } from "modules/inquiry";
-import { useGetAllInputs } from "modules/input";
+import { useGetAllInputs, InputCard } from "modules/input";
 import { withAdmin } from "modules/user";
 import { InquiryStatus, Sentiment, InputStatus } from "types/api";
 import { INQUIRY_STATUS_LABELS, SENTIMENT_COLORS, INPUT_STATUS_COLORS } from "constants/enums";
@@ -200,6 +200,67 @@ function InquiryDetailPage() {
 										</Box>
 									</Box>
 								)}
+								{/* AI Summary Section */}
+								{inquiry.aiSummary && (
+									<Box sx={{ mt: 4, mb: 2 }}>
+										<Typography variant="h6" fontWeight={600} gutterBottom>
+											AI Executive Summary
+										</Typography>
+										<Paper elevation={1} sx={{ p: 3, mb: 3, bgcolor: "primary.50" }}>
+											<Typography variant="body1" paragraph>
+												{inquiry.aiSummary.executiveSummaryData?.["summary"] ||
+												 Object.values(inquiry.aiSummary.executiveSummaryData || {}).join(" ") ||
+												 "No summary available."}
+											</Typography>
+											<Typography variant="caption" color="text.secondary">
+												Generated on{" "}
+												{DateTime.fromISO(inquiry.aiSummary.generatedAt).toFormat(
+													"MMM dd, yyyy HH:mm"
+												)}
+											</Typography>
+										</Paper>
+
+										{/* Suggested Actions */}
+										{inquiry.aiSummary.suggestedPrioritizedActions?.length > 0 && (
+											<>
+												<Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
+													Suggested Actions
+												</Typography>
+												<Grid container spacing={2}>
+													{inquiry.aiSummary.suggestedPrioritizedActions.map((action, index) => (
+														<Grid item xs={12} md={6} key={index}>
+															<Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
+																<Typography variant="subtitle2" fontWeight={700} gutterBottom>
+																	{action.action}
+																</Typography>
+																<Box sx={{ mb: 1 }}>
+																	<Chip
+																		label={action.impact}
+																		size="small"
+																		color={
+																			action.impact === "High"
+																				? "error"
+																				: action.impact === "Medium"
+																				? "warning"
+																				: "info"
+																		}
+																		sx={{ mr: 1 }}
+																	/>
+																	<Typography variant="caption" color="text.secondary">
+																		{action.responseCount} responses
+																	</Typography>
+																</Box>
+																<Typography variant="body2" color="text.secondary" paragraph>
+																	{action.supportingReasoning}
+																</Typography>
+															</Paper>
+														</Grid>
+													))}
+												</Grid>
+											</>
+										)}
+									</Box>
+								)}
 							</Box>
 						</TabPanel>
 
@@ -208,76 +269,17 @@ function InquiryDetailPage() {
 							{inputsLoading ? (
 								<Loader height="auto" />
 							) : inquiryInputs.length > 0 ? (
-								<Box>
+								<Grid container spacing={2}>
 									{inquiryInputs.map(input => (
-										<Paper
-											key={input.id}
-											variant="outlined"
-											sx={{
-												p: 2,
-												mb: 2,
-												cursor: "pointer",
-												"&:hover": { bgcolor: "grey.50" },
-											}}
-											onClick={() => handleInputClick(input.id)}
-										>
-											<Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, flexWrap: "wrap", gap: 1 }}>
-												<Typography variant="caption" color="text.secondary">
-													{DateTime.fromISO(input.createdAt).toFormat(
-														"MMM dd, yyyy 'at' hh:mm a",
-													)}
-												</Typography>
-												<Box sx={{ display: "flex", gap: 1 }}>
-													{input.sentiment && (
-														<Chip
-															label={input.sentiment}
-															size="small"
-															color={SENTIMENT_COLORS[input.sentiment]}
-														/>
-													)}
-													{input.status && (
-														<Chip
-															label={input.status}
-															size="small"
-															color={INPUT_STATUS_COLORS[input.status]}
-														/>
-													)}
-													{input.isAnonymous && (
-														<Chip label="Anonymous" size="small" variant="outlined" />
-													)}
-												</Box>
-											</Box>
-											<Typography variant="body2" sx={{ mb: 1 }}>
-												{input.body}
-											</Typography>
-
-											{/* Quality Scores */}
-											<Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 2 }}>
-												{input.qualityScore !== undefined && (
-													<Chip
-														label={`Quality: ${input.qualityScore}/10`}
-														size="small"
-														variant="outlined"
-													/>
-												)}
-												{input.importanceScore !== undefined && (
-													<Chip
-														label={`Importance: ${input.importanceScore}/10`}
-														size="small"
-														variant="outlined"
-													/>
-												)}
-												{input.urgencyScore !== undefined && (
-													<Chip
-														label={`Urgency: ${input.urgencyScore}/10`}
-														size="small"
-														variant="outlined"
-													/>
-												)}
-											</Box>
-										</Paper>
+										<Grid item xs={12} key={input.id}>
+											<InputCard
+												input={input}
+												showInquiryLink={false}
+												onClick={() => handleInputClick(input.id)}
+											/>
+										</Grid>
 									))}
-								</Box>
+								</Grid>
 							) : (
 								<Alert severity="info">No responses received yet for this inquiry.</Alert>
 							)}

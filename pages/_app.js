@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "styles/globals.css";
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({});
 
 const GlobalThings = () => {
 	useLoadEnums();

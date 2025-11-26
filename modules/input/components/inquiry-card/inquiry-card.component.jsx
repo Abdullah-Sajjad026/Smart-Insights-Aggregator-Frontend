@@ -27,9 +27,9 @@ export function InquiryCard({
 		return DateTime.fromISO(dateString).toFormat("MMM dd, yyyy");
 	};
 
-	const isActive = inquiry.status === "ACTIVE";
-	const isPastDeadline = inquiry.endDate
-		? DateTime.fromISO(inquiry.endDate) < DateTime.now()
+	const isActive = inquiry.status?.toUpperCase() === "ACTIVE";
+	const isPastDeadline = inquiry.closedAt
+		? DateTime.fromISO(inquiry.closedAt) < DateTime.now()
 		: false;
 
 	return (
@@ -54,16 +54,16 @@ export function InquiryCard({
 					}}
 				>
 					<Typography variant="h6" fontWeight={600} sx={{ flex: 1, mr: 2 }}>
-						Inquiry Question
+						Inquiry
 					</Typography>
 					{showStatus && (
 						<Chip
 							label={inquiry.status}
 							size="small"
 							color={
-								inquiry.status === "ACTIVE"
+								isActive
 									? "success"
-									: inquiry.status === "DRAFT"
+									: inquiry.status?.toUpperCase() === "DRAFT"
 										? "warning"
 										: "default"
 							}
@@ -77,39 +77,40 @@ export function InquiryCard({
 					color="text.secondary"
 					sx={{ mb: 2, lineHeight: 1.6 }}
 				>
-					{inquiry.body ? (inquiry.body.length > 200 ? `${inquiry.body.substring(0, 200)}...` : inquiry.body) : (inquiry.description || '')}
+					{inquiry.body || inquiry.description || "No content"}
 				</Typography>
 
 				{/* Date Range */}
 				<Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
 					<Box>
 						<Typography variant="caption" color="text.secondary">
-							Start Date
+							Sent Date
 						</Typography>
 						<Typography variant="body2" fontWeight={500}>
-							{formatDate(inquiry.startDate)}
+							{formatDate(inquiry.sentAt || inquiry.createdAt)}
 						</Typography>
 					</Box>
-					<Box>
-						<Typography variant="caption" color="text.secondary">
-							End Date
-						</Typography>
-						<Typography
-							variant="body2"
-							fontWeight={500}
-							color={isPastDeadline ? "error.main" : "inherit"}
-						>
-							{formatDate(inquiry.endDate)}
-							{isPastDeadline && " (Expired)"}
-						</Typography>
-					</Box>
-					{inquiry.totalInputs !== undefined && (
+					{inquiry.closedAt && (
+						<Box>
+							<Typography variant="caption" color="text.secondary">
+								Closed Date
+							</Typography>
+							<Typography
+								variant="body2"
+								fontWeight={500}
+								color="text.secondary"
+							>
+								{formatDate(inquiry.closedAt)}
+							</Typography>
+						</Box>
+					)}
+					{inquiry.stats?.totalResponses !== undefined && (
 						<Box>
 							<Typography variant="caption" color="text.secondary">
 								Responses
 							</Typography>
 							<Typography variant="body2" fontWeight={500}>
-								{inquiry.totalInputs}
+								{inquiry.stats.totalResponses}
 							</Typography>
 						</Box>
 					)}

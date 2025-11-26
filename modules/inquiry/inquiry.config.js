@@ -5,9 +5,9 @@
  */
 
 // Inquiry status
-export const INQUIRY_STATUS_ACTIVE = "ACTIVE";
-export const INQUIRY_STATUS_DRAFT = "DRAFT";
-export const INQUIRY_STATUS_CLOSED = "CLOSED";
+export const INQUIRY_STATUS_ACTIVE = "Active";
+export const INQUIRY_STATUS_DRAFT = "Draft";
+export const INQUIRY_STATUS_CLOSED = "Closed";
 
 export const inquiryStatusOptions = [
 	{ value: INQUIRY_STATUS_ACTIVE, label: "Active" },

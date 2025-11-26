@@ -32,19 +32,16 @@ export const getMyInputsQueryKey = (params) => ["my-inputs", params];
 
 /**
  * Select/transform query data
- * Note: Backend returns simple array, not paginated result
+ * Transform PaginatedResult to match frontend expectations
  */
 export const selectMyInputsQueryData = (response) => {
-	// Backend returns array directly in response (after axios interceptor extracts it)
-	const items = Array.isArray(response) ? response : [];
-
 	return {
-		data: items,
+		data: response.items,
 		pagination: {
-			totalItems: items.length,
-			pageNumber: 1,
-			pageSize: items.length,
-			totalPages: 1,
+			totalItems: response.totalCount,
+			pageNumber: response.pageNumber,
+			pageSize: response.pageSize,
+			totalPages: response.totalPages,
 		},
 	};
 };
