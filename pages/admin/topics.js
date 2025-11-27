@@ -286,7 +286,16 @@ function AdminTopicsPage() {
 												{data.data.map((topic) => (
 													<TableRow key={topic.id} hover>
 														<TableCell>
-															<Typography variant="body2" fontWeight={600}>
+															<Typography
+																variant="body2"
+																fontWeight={600}
+																sx={{
+																	cursor: "pointer",
+																	color: "primary.main",
+																	"&:hover": { textDecoration: "underline" },
+																}}
+																onClick={() => router.push(`/admin/topics/${topic.id}`)}
+															>
 																{topic.name}
 															</Typography>
 														</TableCell>

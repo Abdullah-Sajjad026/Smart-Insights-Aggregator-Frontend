@@ -2,7 +2,7 @@ import { CssBaseline } from "@mui/material";
 import { AppCacheProvider } from "@mui/material-nextjs/v13-pagesRouter";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "constants/theme";
-import { useLoadEnums } from "modules/general/api/load-enums/load-enums.api";
+// import { useLoadEnums } from "modules/general/api/load-enums/load-enums.api";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -12,7 +12,7 @@ import "styles/globals.css";
 const queryClient = new QueryClient({});
 
 const GlobalThings = () => {
-	useLoadEnums();
+	// useLoadEnums();
 
 	return <>{/* Global things */}</>;
 };
