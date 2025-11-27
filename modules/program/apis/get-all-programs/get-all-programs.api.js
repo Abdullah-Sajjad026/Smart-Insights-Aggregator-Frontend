@@ -17,12 +17,12 @@ export function getAllPrograms(params = {}) {
 
 export const getGetAllProgramsQueryKey = (params) => ["programs", "all", params];
 export const selectGetAllProgramsQueryData = (response) => ({
-	data: response.items,
+	data: response,
 	pagination: {
-		totalItems: response.totalCount,
-		pageNumber: response.pageNumber,
-		pageSize: response.pageSize,
-		totalPages: response.totalPages,
+		totalItems: response?.length || 0,
+		pageNumber: 1,
+		pageSize: response?.length || 0,
+		totalPages: 1,
 	},
 });
 

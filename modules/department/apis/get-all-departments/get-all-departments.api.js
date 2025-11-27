@@ -17,12 +17,12 @@ export function getAllDepartments(params = {}) {
 
 export const getGetAllDepartmentsQueryKey = (params) => ["departments", "all", params];
 export const selectGetAllDepartmentsQueryData = (response) => ({
-	data: response.items,
+	data: response,
 	pagination: {
-		totalItems: response.totalCount,
-		pageNumber: response.pageNumber,
-		pageSize: response.pageSize,
-		totalPages: response.totalPages,
+		totalItems: response?.length || 0,
+		pageNumber: 1,
+		pageSize: response?.length || 0,
+		totalPages: 1,
 	},
 });
 

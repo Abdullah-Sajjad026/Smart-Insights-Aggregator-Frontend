@@ -14,9 +14,6 @@ import Chip from "@mui/material/Chip";
 import { LoadingButton } from "modules/shared/components";
 import {
 	inquiryStatusOptions,
-	departments,
-	programs,
-	semesters,
 	INQUIRY_STATUS_DRAFT,
 } from "../../inquiry.config";
 
@@ -27,9 +24,10 @@ const inquirySchema = z.object({
 	title: z.string().min(5, "Title must be at least 5 characters"),
 	description: z.string().min(20, "Description must be at least 20 characters"),
 	status: z.string(),
-	targetDepartments: z.array(z.string()),
-	targetPrograms: z.array(z.string()),
-	targetSemesters: z.array(z.string()),
+	targetFaculties: z.array(z.any()),
+	targetDepartments: z.array(z.any()), // Allow objects
+	targetPrograms: z.array(z.any()),
+	targetSemesters: z.array(z.any()),
 	startDate: z.string().min(1, "Start date is required"),
 	endDate: z.string().min(1, "End date is required"),
 });
@@ -41,8 +39,21 @@ const inquirySchema = z.object({
  * @param {Function} props.onClose - Close handler
  * @param {Function} props.onSubmit - Submit handler
  * @param {boolean} [props.isLoading] - Loading state
+ * @param {Array} [props.faculties] - List of faculties
+ * @param {Array} [props.departments] - List of departments
+ * @param {Array} [props.programs] - List of programs
+ * @param {Array} [props.semesters] - List of semesters
  */
-export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
+export function CreateInquiryDialog({
+	open,
+	onClose,
+	onSubmit,
+	isLoading,
+	faculties = [],
+	departments = [],
+	programs = [],
+	semesters = [],
+}) {
 	const {
 		register,
 		handleSubmit,
@@ -55,6 +66,7 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 			title: "",
 			description: "",
 			status: INQUIRY_STATUS_DRAFT,
+			targetFaculties: [],
 			targetDepartments: [],
 			targetPrograms: [],
 			targetSemesters: [],
@@ -152,6 +164,43 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 						/>
 					</Box>
 
+					{/* Target Faculties */}
+					<Controller
+						name="targetFaculties"
+						control={control}
+						render={({ field }) => (
+							<Autocomplete
+								{...field}
+								multiple
+								options={faculties}
+								getOptionLabel={option => option.name}
+								isOptionEqualToValue={(option, value) => option.id === value.id}
+								onChange={(_, value) => field.onChange(value)}
+								renderInput={params => (
+									<TextField
+										{...params}
+										label="Target Faculties (Optional)"
+										placeholder="Select faculties"
+										error={!!errors.targetFaculties}
+										helperText={
+											errors.targetFaculties?.message ||
+											"Leave empty to target all faculties"
+										}
+									/>
+								)}
+								renderTags={(value, getTagProps) =>
+									value.map((option, index) => (
+										<Chip
+											label={option.name}
+											{...getTagProps({ index })}
+											key={option.id}
+										/>
+									))
+								}
+							/>
+						)}
+					/>
+
 					{/* Target Departments */}
 					<Controller
 						name="targetDepartments"
@@ -161,6 +210,8 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 								{...field}
 								multiple
 								options={departments}
+								getOptionLabel={option => option.name}
+								isOptionEqualToValue={(option, value) => option.id === value.id}
 								onChange={(_, value) => field.onChange(value)}
 								renderInput={params => (
 									<TextField
@@ -177,9 +228,9 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 								renderTags={(value, getTagProps) =>
 									value.map((option, index) => (
 										<Chip
-											label={option}
+											label={option.name}
 											{...getTagProps({ index })}
-											key={option}
+											key={option.id}
 										/>
 									))
 								}
@@ -196,6 +247,8 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 								{...field}
 								multiple
 								options={programs}
+								getOptionLabel={option => option.name}
+								isOptionEqualToValue={(option, value) => option.id === value.id}
 								onChange={(_, value) => field.onChange(value)}
 								renderInput={params => (
 									<TextField
@@ -212,9 +265,9 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 								renderTags={(value, getTagProps) =>
 									value.map((option, index) => (
 										<Chip
-											label={option}
+											label={option.name}
 											{...getTagProps({ index })}
-											key={option}
+											key={option.id}
 										/>
 									))
 								}
@@ -231,6 +284,8 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 								{...field}
 								multiple
 								options={semesters}
+								getOptionLabel={option => option.value}
+								isOptionEqualToValue={(option, value) => option.id === value.id}
 								onChange={(_, value) => field.onChange(value)}
 								renderInput={params => (
 									<TextField
@@ -247,9 +302,9 @@ export function CreateInquiryDialog({ open, onClose, onSubmit, isLoading }) {
 								renderTags={(value, getTagProps) =>
 									value.map((option, index) => (
 										<Chip
-											label={`Semester ${option}`}
+											label={`Semester ${option.value}`}
 											{...getTagProps({ index })}
-											key={option}
+											key={option.id}
 										/>
 									))
 								}

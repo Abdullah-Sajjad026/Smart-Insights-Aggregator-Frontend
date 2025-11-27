@@ -24,6 +24,10 @@ import {
 	useDeleteInquiryMutation,
 	getInquiriesQueryKey,
 } from "modules/inquiry";
+import { useGetAllFaculties } from "modules/faculty";
+import { useGetAllDepartments } from "modules/department";
+import { useGetAllPrograms } from "modules/program";
+import { useGetAllSemesters } from "modules/semester";
 import { getApiErrorMessage } from "modules/shared/shared.utils";
 import { InquiryStatus } from "types/api";
 import { withAdmin } from "modules/user";
@@ -42,6 +46,12 @@ function AdminInquiriesPage() {
 		page,
 		pageSize,
 	});
+
+	// Fetch metadata for create dialog
+	const { data: facultiesData } = useGetAllFaculties();
+	const { data: departmentsData } = useGetAllDepartments({ page: 1, pageSize: 100 });
+	const { data: programsData } = useGetAllPrograms({ page: 1, pageSize: 100 });
+	const { data: semestersData } = useGetAllSemesters({ page: 1, pageSize: 100 });
 
 	// Create inquiry mutation
 	const createMutation = useCreateInquiryMutation({
@@ -77,7 +87,16 @@ function AdminInquiriesPage() {
 	};
 
 	const handleCreate = data => {
-		createMutation.mutate(data);
+		// Transform form data to backend request format
+		const requestData = {
+			body: `**${data.title}**\n\n${data.description}`,
+			status: data.status,
+			facultyIds: data.targetFaculties.map(f => f.id),
+			departmentIds: data.targetDepartments.map(d => d.id),
+			programIds: data.targetPrograms.map(p => p.id),
+			semesterIds: data.targetSemesters.map(s => s.id),
+		};
+		createMutation.mutate(requestData);
 	};
 
 	const handleDelete = inquiryId => {
@@ -272,6 +291,10 @@ function AdminInquiriesPage() {
 					onClose={() => setCreateDialogOpen(false)}
 					onSubmit={handleCreate}
 					isLoading={createMutation.isLoading}
+					faculties={facultiesData?.data || []}
+					departments={departmentsData?.data || []}
+					programs={programsData?.data || []}
+					semesters={semestersData?.data || []}
 				/>
 			</MainContainer>
 		</RootLayout>

@@ -8,7 +8,15 @@ export function getAllSemesters(params = {}) {
 }
 
 export const getGetAllSemestersQueryKey = (params) => ["semesters", "all", params];
-export const selectGetAllSemestersQueryData = (response) => response;
+export const selectGetAllSemestersQueryData = (response) => ({
+	data: response,
+	pagination: {
+		totalItems: response?.length || 0,
+		pageNumber: 1,
+		pageSize: response?.length || 0,
+		totalPages: 1,
+	},
+});
 
 export function useGetAllSemesters(params = {}, queryProps = {}) {
 	return useQuery({
