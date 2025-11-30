@@ -55,7 +55,13 @@ export function InputCard({
 				>
 					<Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
 						<Chip
-							label={input.type === "InquiryLinked" ? "Inquiry Response" : "General Feedback"}
+							label={
+								input.type === "InquiryLinked"
+									? "Inquiry Response"
+									: input.type === "General"
+										? "General Feedback"
+										: input.type || "Feedback"
+							}
 							size="small"
 							color={input.type === "InquiryLinked" ? "primary" : "default"}
 							variant="outlined"

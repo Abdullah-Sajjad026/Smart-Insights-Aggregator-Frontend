@@ -9,7 +9,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
 import { MainContainer, Loader } from "modules/shared/components";
-import { useGetMyInputs } from "modules/input";
+import { useGetMyInputs, InputCard } from "modules/input";
 import { withStudent } from "modules/user";
 import { SENTIMENT_COLORS, INPUT_STATUS_COLORS } from "constants/enums";
 
@@ -101,82 +101,14 @@ function StudentHomePage() {
 					{/* Inputs List */}
 					{data && myInputs.length > 0 ? (
 						<Box>
-							{myInputs.map(input => (
-								<Paper
+							{myInputs.map((input) => (
+								<InputCard
 									key={input.id}
-									variant="outlined"
-									sx={{
-										p: 3,
-										mb: 2,
-										cursor: "pointer",
-										"&:hover": { bgcolor: "grey.50" },
-									}}
+									input={input}
 									onClick={() => router.push(`/input/my-inputs`)}
-								>
-									{/* Date and Status */}
-									<Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1, flexWrap: "wrap", gap: 1 }}>
-										<Typography variant="caption" color="text.secondary">
-											{DateTime.fromISO(input.createdAt).toFormat(
-												"MMMM dd, yyyy 'at' hh:mm a",
-											)}
-										</Typography>
-										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-											{input.status && (
-												<Chip
-													label={input.status}
-													size="small"
-													color={INPUT_STATUS_COLORS[input.status]}
-												/>
-											)}
-											{input.sentiment && (
-												<Chip
-													label={input.sentiment}
-													size="small"
-													color={SENTIMENT_COLORS[input.sentiment]}
-												/>
-											)}
-										</Box>
-									</Box>
-
-									{/* Input Text */}
-									<Typography variant="body1" sx={{ my: 2, lineHeight: 1.7 }}>
-										{input.body}
-									</Typography>
-
-									{/* Type and Reply Badges */}
-									<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-										{input.inquiryId && input.inquiryTitle ? (
-											<Chip
-												label={`Response to: ${input.inquiryTitle}`}
-												size="small"
-												color="primary"
-												variant="outlined"
-											/>
-										) : (
-											<Chip
-												label="General Feedback"
-												size="small"
-												variant="outlined"
-											/>
-										)}
-
-										{input.replyCount > 0 && (
-											<Chip
-												label={`${input.replyCount} ${input.replyCount === 1 ? 'reply' : 'replies'}`}
-												size="small"
-												color="success"
-											/>
-										)}
-
-										{input.isAnonymous && !input.revealedAt && (
-											<Chip
-												label="Anonymous"
-												size="small"
-												variant="outlined"
-											/>
-										)}
-									</Box>
-								</Paper>
+									showAIAnalysis={false}
+									showInquiryLink={true}
+								/>
 							))}
 
 							{/* View All Button */}

@@ -28,6 +28,7 @@ import {
 	useRequestRevealMutation,
 	getInputByIdQueryKey,
 	getInputRepliesQueryKey,
+	InputCard,
 } from "modules/input";
 import { withAdmin } from "modules/user";
 import { getApiErrorMessage } from "modules/shared/shared.utils";
@@ -150,158 +151,11 @@ function InputDetailPage() {
 					</Button>
 
 					{/* Input Card */}
-					<Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-						<Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
-							<Typography variant="caption" color="text.secondary">
-								{DateTime.fromISO(input.createdAt).toFormat(
-									"MMMM dd, yyyy 'at' hh:mm a",
-								)}
-							</Typography>
-							<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-								{input.status && (
-									<Chip
-										label={input.status}
-										size="small"
-										color={INPUT_STATUS_COLORS[input.status]}
-									/>
-								)}
-								{input.sentiment && (
-									<Chip
-										label={input.sentiment}
-										size="small"
-										color={SENTIMENT_COLORS[input.sentiment]}
-									/>
-								)}
-								{input.tone && (
-									<Chip
-										label={TONE_LABELS[input.tone] || input.tone}
-										size="small"
-										variant="outlined"
-									/>
-								)}
-								{input.isAnonymous && !input.revealedAt && (
-									<Chip label="Anonymous" size="small" variant="outlined" />
-								)}
-							</Box>
-						</Box>
-
-						<Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8 }}>
-							{input.body}
-						</Typography>
-
-						{/* AI Analysis Scores */}
-						{(input.qualityScore !== undefined || input.importanceScore !== undefined || input.urgencyScore !== undefined) && (
-							<Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "grey.50" }}>
-								<Typography variant="subtitle2" gutterBottom fontWeight={600}>
-									AI Analysis Scores
-								</Typography>
-								<Grid container spacing={2} sx={{ mt: 1 }}>
-									{input.qualityScore !== undefined && (
-										<Grid item xs={6} sm={4}>
-											<Box sx={{ textAlign: "center" }}>
-												<Typography variant="h5" fontWeight={600} color="primary.main">
-													{input.qualityScore}/10
-												</Typography>
-												<Typography variant="caption" color="text.secondary">
-													Quality
-												</Typography>
-											</Box>
-										</Grid>
-									)}
-									{input.importanceScore !== undefined && (
-										<Grid item xs={6} sm={4}>
-											<Box sx={{ textAlign: "center" }}>
-												<Typography variant="h5" fontWeight={600} color="warning.main">
-													{input.importanceScore}/10
-												</Typography>
-												<Typography variant="caption" color="text.secondary">
-													Importance
-												</Typography>
-											</Box>
-										</Grid>
-									)}
-									{input.urgencyScore !== undefined && (
-										<Grid item xs={6} sm={4}>
-											<Box sx={{ textAlign: "center" }}>
-												<Typography variant="h5" fontWeight={600} color="error.main">
-													{input.urgencyScore}/10
-												</Typography>
-												<Typography variant="caption" color="text.secondary">
-													Urgency
-												</Typography>
-											</Box>
-										</Grid>
-									)}
-								</Grid>
-							</Paper>
-						)}
-
-						{/* Input Type and Inquiry Link */}
-						<Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
-							{input.inquiryId && input.inquiryTitle && (
-								<Chip
-									label={`Response to: ${input.inquiryTitle}`}
-									size="small"
-									color="primary"
-									variant="outlined"
-								/>
-							)}
-							{!input.inquiryId && (
-								<Chip label="General Feedback" size="small" variant="outlined" />
-							)}
-						</Box>
-
-						{/* Student Metadata */}
-						<Divider sx={{ my: 2 }} />
-						<Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-							{input.department && (
-								<Box>
-									<Typography variant="caption" color="text.secondary">
-										Department
-									</Typography>
-									<Typography variant="body2">{input.department}</Typography>
-								</Box>
-							)}
-							{input.program && (
-								<Box>
-									<Typography variant="caption" color="text.secondary">
-										Program
-									</Typography>
-									<Typography variant="body2">{input.program}</Typography>
-								</Box>
-							)}
-							{input.semester && (
-								<Box>
-									<Typography variant="caption" color="text.secondary">
-										Semester
-									</Typography>
-									<Typography variant="body2">{input.semester}</Typography>
-								</Box>
-							)}
-							<Box>
-								<Typography variant="caption" color="text.secondary">
-									Identity Status
-								</Typography>
-								<Box sx={{ display: "flex", gap: 1, alignItems: "center", mt: 0.5 }}>
-									<Typography variant="body2" fontWeight={600}>
-										{input.revealedAt ? "Revealed" : "Anonymous"}
-									</Typography>
-									{input.revealStatus && input.revealStatus !== RevealStatus.NotRequested && (
-										<Chip
-											label={REVEAL_STATUS_LABELS[input.revealStatus] || input.revealStatus}
-											size="small"
-											color={input.revealStatus === RevealStatus.Approved ? "success" : "warning"}
-										/>
-									)}
-								</Box>
-								{input.revealedAt && input.studentName && (
-									<Typography variant="caption" color="primary.main">
-										Student: {input.studentName}
-									</Typography>
-								)}
-							</Box>
-						</Box>
-					</Paper>
+					<InputCard
+						input={input}
+						showAIAnalysis={true}
+						showInquiryLink={true}
+					/>
 
 					{/* Conversation Section */}
 					<Paper elevation={2} sx={{ p: 3, mb: 3 }}>

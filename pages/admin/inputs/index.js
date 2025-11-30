@@ -11,7 +11,7 @@ import Chip from "@mui/material/Chip";
 import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
 import { MainContainer, Loader } from "modules/shared/components";
-import { useGetAllInputs } from "modules/input";
+import { useGetAllInputs, InputCard } from "modules/input";
 import { withAdmin } from "modules/user";
 import { InputStatus, Sentiment } from "types/api";
 import { INPUT_STATUS_COLORS, SENTIMENT_COLORS } from "constants/enums";
@@ -115,98 +115,16 @@ function AdminInputsPage() {
 							{data.data && data.data.length > 0 ? (
 								<>
 									<Box>
+									<Box>
 										{data.data.map((input) => (
-											<Paper
+											<InputCard
 												key={input.id}
-												variant="outlined"
-												sx={{
-													p: 3,
-													mb: 2,
-													cursor: "pointer",
-													"&:hover": { bgcolor: "grey.50" },
-												}}
+												input={input}
 												onClick={() => handleInputClick(input)}
-											>
-												{/* Header */}
-												<Box
-													sx={{
-														display: "flex",
-														justifyContent: "space-between",
-														alignItems: "flex-start",
-														mb: 2,
-														flexWrap: "wrap",
-														gap: 1,
-													}}
-												>
-													<Box>
-														<Typography variant="caption" color="text.secondary">
-															{DateTime.fromISO(input.createdAt).toFormat(
-																"MMM dd, yyyy 'at' hh:mm a"
-															)}
-														</Typography>
-														{input.userName && (
-															<Typography variant="body2" fontWeight={600} sx={{ mt: 0.5 }}>
-																By: {input.userName}
-															</Typography>
-														)}
-													</Box>
-													<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-														{input.status && (
-															<Chip
-																label={input.status}
-																size="small"
-																color={INPUT_STATUS_COLORS[input.status]}
-															/>
-														)}
-														{input.sentiment && (
-															<Chip
-																label={input.sentiment}
-																size="small"
-																color={SENTIMENT_COLORS[input.sentiment]}
-															/>
-														)}
-														{input.isAnonymous && !input.identityRevealedAt && (
-															<Chip label="Anonymous" size="small" variant="outlined" />
-														)}
-													</Box>
-												</Box>
-
-												{/* Body */}
-												<Typography variant="body1" sx={{ mb: 2, lineHeight: 1.7 }}>
-													{input.body}
-												</Typography>
-
-												{/* Meta */}
-												<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-													{input.inquiryId && input.inquiryBody && (
-														<Chip
-															label={`Response to: ${input.inquiryBody.substring(0, 50)}...`}
-															size="small"
-															color="primary"
-															variant="outlined"
-														/>
-													)}
-													{!input.inquiryId && (
-														<Chip label="General Feedback" size="small" variant="outlined" />
-													)}
-													{input.topicName && (
-														<Chip
-															label={`Topic: ${input.topicName}`}
-															size="small"
-															variant="outlined"
-														/>
-													)}
-													{input.qualityScore !== undefined && (
-														<Chip
-															label={`Quality: ${input.qualityScore}/10`}
-															size="small"
-															color="primary"
-															variant="outlined"
-														/>
-													)}
-												</Box>
-											</Paper>
+												showAIAnalysis={false}
+											/>
 										))}
+									</Box>
 									</Box>
 
 									{/* Pagination */}
