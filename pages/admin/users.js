@@ -25,6 +25,7 @@ import MenuItem from "@mui/material/MenuItem";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
 import { useQueryClient } from "react-query";
@@ -39,6 +40,7 @@ import {
 	useUpdateUserMutation,
 	useDeleteUserMutation,
 	getAllUsersQueryKey,
+	ImportUsersDialog,
 } from "modules/user";
 import { useGetAllDepartments } from "modules/department";
 import { useGetAllPrograms } from "modules/program";
@@ -346,6 +348,8 @@ function AdminUsersPage() {
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState(null);
 
+	const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+
 	// Fetch users
 	const { data, isLoading, isError } = useGetAllUsers({
 		role: roleFilter,
@@ -421,13 +425,22 @@ function AdminUsersPage() {
 								Manage system users and their access levels
 							</Typography>
 						</Box>
-						<Button
-							variant="contained"
-							startIcon={<AddIcon />}
-							onClick={handleCreateClick}
-						>
-							Add User
-						</Button>
+						<Box sx={{ display: "flex", gap: 2 }}>
+							<Button
+								variant="outlined"
+								startIcon={<CloudUploadIcon />}
+								onClick={() => setIsImportDialogOpen(true)}
+							>
+								Import Users
+							</Button>
+							<Button
+								variant="contained"
+								startIcon={<AddIcon />}
+								onClick={handleCreateClick}
+							>
+								Add User
+							</Button>
+						</Box>
 					</Box>
 
 					{/* Role Filter Tabs */}
@@ -598,6 +611,12 @@ function AdminUsersPage() {
 					open={dialogOpen}
 					onClose={handleDialogClose}
 					user={selectedUser}
+				/>
+
+				{/* Import Users Dialog */}
+				<ImportUsersDialog
+					open={isImportDialogOpen}
+					onClose={() => setIsImportDialogOpen(false)}
 				/>
 			</MainContainer>
 		</RootLayout>

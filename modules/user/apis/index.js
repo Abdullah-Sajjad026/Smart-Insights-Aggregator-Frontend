@@ -5,3 +5,4 @@ export * from "./create-user/create-user.api";
 export * from "./update-user/update-user.api";
 export * from "./delete-user/delete-user.api";
 export * from "./get-user-stats/get-user-stats.api";
+export * from "./import-users/import-users.api";

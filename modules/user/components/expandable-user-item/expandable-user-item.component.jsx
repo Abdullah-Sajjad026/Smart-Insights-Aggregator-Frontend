@@ -16,7 +16,7 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { SignOutIcon } from "components/icons";
+import { SignOutIcon } from "modules/shared/icons";
 import { sharedRoutes, useMenu } from "modules/shared";
 import { useSignOut } from "modules/user/hooks";
 import { userTypeAdmin, userTypeBrand } from "modules/user/user.config";

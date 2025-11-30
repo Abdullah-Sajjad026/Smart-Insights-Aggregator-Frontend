@@ -7,3 +7,4 @@ export * from "./user.utils";
 export * from "./user.routes";
 export * from "./user.context";
 export * from "./user.config";
+export * from "./components";
