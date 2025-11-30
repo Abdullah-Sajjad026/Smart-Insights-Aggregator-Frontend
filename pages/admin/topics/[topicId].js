@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { useQueryClient } from "react-query";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
@@ -13,7 +14,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
 import { MainContainer, Loader } from "modules/shared/components";
-import { useGetTopicById, useGenerateTopicSummaryMutation } from "modules/topic";
+import { useGetTopicById, useGenerateTopicSummaryMutation, getTopicByIdQueryKey } from "modules/topic";
 import { toast } from "react-toastify";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { InputCard } from "modules/input";
@@ -37,9 +38,18 @@ function TopicDetailPage() {
 		enabled: !!topicId,
 	});
 
+	const queryClient = useQueryClient();
+
 	const generateSummaryMutation = useGenerateTopicSummaryMutation({
 		onSuccess: () => {
-			toast.success("Summary generation started. It may take a few moments to appear.");
+			toast.success("Summary generation started. It will appear shortly.");
+			// Invalidate immediately
+			queryClient.invalidateQueries(getTopicByIdQueryKey(topicId));
+
+			// Invalidate again after a delay to allow background job to finish
+			setTimeout(() => {
+				queryClient.invalidateQueries(getTopicByIdQueryKey(topicId));
+			}, 2000);
 		},
 		onError: () => {
 			toast.error("Failed to start summary generation");
