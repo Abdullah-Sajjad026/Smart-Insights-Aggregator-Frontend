@@ -26,7 +26,14 @@ export const getGetUserStatsQueryKey = () => ["users", "stats"];
  * Select the data from the response
  * @param {UserStatsDto} response
  */
-export const selectGetUserStatsQueryData = (response) => response;
+export const selectGetUserStatsQueryData = (response) => {
+	if (!response) return null;
+	return {
+		totalUsers: response.totalUsers || 0,
+		totalAdmins: response.byRole?.["Admin"] || 0,
+		totalStudents: response.byRole?.["Student"] || 0,
+	};
+};
 
 /**
  * Get user statistics

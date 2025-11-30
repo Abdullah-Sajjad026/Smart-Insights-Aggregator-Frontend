@@ -24,7 +24,15 @@ export const getInquiryStatsQueryKey = () => ["inquiries", "stats"];
 /**
  * Select/transform query data
  */
-export const selectInquiryStatsQueryData = (response) => response;
+export const selectInquiryStatsQueryData = (response) => {
+	if (!response) return null;
+	return {
+		totalInquiries: response.total || 0,
+		sentInquiries: response.byStatus?.["Active"] || 0,
+		draftInquiries: response.byStatus?.["Draft"] || 0,
+		closedInquiries: response.byStatus?.["Closed"] || 0,
+	};
+};
 
 /**
  * React Query hook for getting inquiry statistics

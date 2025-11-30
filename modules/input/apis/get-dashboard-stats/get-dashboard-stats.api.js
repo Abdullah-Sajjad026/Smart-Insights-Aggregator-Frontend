@@ -27,28 +27,28 @@ export const getDashboardStatsQueryKey = () => ["dashboard-stats"];
 export const selectDashboardStatsQueryData = (response) => {
 	if (!response) return null;
 
-	const { ByType = {}, ByStatus = {}, BySentiment = {}, AverageQualityScore = 0 } = response;
+	const { byType = {}, byStatus = {}, bySentiment = {}, averageQualityScore = 0 } = response;
 
 	// Calculate totals
-	const totalInputs = Object.values(ByType).reduce((a, b) => a + b, 0);
+	const totalInputs = Object.values(byType).reduce((a, b) => a + b, 0);
 
 	return {
 		totalInputs,
-		generalInputs: ByType.General || 0,
-		inquiryLinkedInputs: ByType.InquiryResponse || 0,
+		generalInputs: byType["General"] || 0,
+		inquiryLinkedInputs: byType["InquiryLinked"] || 0,
 
 		// Status counts
-		pendingInputs: ByStatus.Pending || 0,
-		reviewedInputs: ByStatus.UnderReview || 0,
-		resolvedInputs: ByStatus.Resolved || 0,
+		pendingInputs: (byStatus["Pending"] || 0) + (byStatus["Processing"] || 0),
+		reviewedInputs: byStatus["Reviewed"] || 0,
+		resolvedInputs: byStatus["Processed"] || 0,
 
 		// Sentiment counts
-		positiveCount: BySentiment.Positive || 0,
-		neutralCount: BySentiment.Neutral || 0,
-		negativeCount: BySentiment.Negative || 0,
+		positiveCount: bySentiment["Positive"] || 0,
+		neutralCount: bySentiment["Neutral"] || 0,
+		negativeCount: bySentiment["Negative"] || 0,
 
 		// Average quality score
-		averageQualityScore: AverageQualityScore
+		averageQualityScore
 	};
 };
 

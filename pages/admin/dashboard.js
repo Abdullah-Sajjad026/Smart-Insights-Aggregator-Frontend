@@ -13,6 +13,8 @@ import { useGetTopicStats } from "modules/topic/apis";
 import { withAdmin } from "modules/user";
 import { Sentiment } from "types/api";
 
+import { StatCardSkeleton, ChartCardSkeleton } from "./components/DashboardSkeletons";
+
 function AdminDashboardPage() {
 	const router = useRouter();
 
@@ -21,18 +23,6 @@ function AdminDashboardPage() {
 	const { data: inquiryStats, isLoading: inquiryLoading } = useGetInquiryStats();
 	const { data: userStats, isLoading: userLoading } = useGetUserStats();
 	const { data: topicStats, isLoading: topicLoading } = useGetTopicStats();
-
-	const isLoading = inputLoading || inquiryLoading || userLoading || topicLoading;
-
-	if (isLoading) {
-		return (
-			<RootLayout>
-				<MainContainer>
-					<Loader />
-				</MainContainer>
-			</RootLayout>
-		);
-	}
 
 	if (inputError) {
 		return (
@@ -66,198 +56,234 @@ function AdminDashboardPage() {
 					<Grid container spacing={3} sx={{ mb: 4 }}>
 						{/* Total Inputs */}
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3 }}>
-								<Typography variant="caption" color="text.secondary">
-									Total Feedback
-								</Typography>
-								<Typography variant="h4" fontWeight={700} color="primary.main">
-									{inputStats?.totalInputs || 0}
-								</Typography>
-								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-									{inputStats?.generalInputs || 0} general, {inputStats?.inquiryLinkedInputs || 0} responses
-								</Typography>
-							</Paper>
+							{inputLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
+									<Typography variant="caption" color="text.secondary">
+										Total Feedback
+									</Typography>
+									<Typography variant="h4" fontWeight={700} color="primary.main">
+										{inputStats?.totalInputs || 0}
+									</Typography>
+									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+										{inputStats?.generalInputs || 0} general, {inputStats?.inquiryLinkedInputs || 0} responses
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 
 						{/* Total Inquiries */}
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3 }}>
-								<Typography variant="caption" color="text.secondary">
-									Total Inquiries
-								</Typography>
-								<Typography variant="h4" fontWeight={700}>
-									{inquiryStats?.totalInquiries || 0}
-								</Typography>
-								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-									{inquiryStats?.sentInquiries || 0} sent, {inquiryStats?.draftInquiries || 0} draft
-								</Typography>
-							</Paper>
+							{inquiryLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
+									<Typography variant="caption" color="text.secondary">
+										Total Inquiries
+									</Typography>
+									<Typography variant="h4" fontWeight={700}>
+										{inquiryStats?.totalInquiries || 0}
+									</Typography>
+									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+										{inquiryStats?.sentInquiries || 0} sent, {inquiryStats?.draftInquiries || 0} draft
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 
 						{/* Total Users */}
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3 }}>
-								<Typography variant="caption" color="text.secondary">
-									Total Users
-								</Typography>
-								<Typography variant="h4" fontWeight={700} color="success.main">
-									{userStats?.totalUsers || 0}
-								</Typography>
-								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-									{userStats?.totalAdmins || 0} admins, {userStats?.totalStudents || 0} students
-								</Typography>
-							</Paper>
+							{userLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
+									<Typography variant="caption" color="text.secondary">
+										Total Users
+									</Typography>
+									<Typography variant="h4" fontWeight={700} color="success.main">
+										{userStats?.totalUsers || 0}
+									</Typography>
+									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+										{userStats?.totalAdmins || 0} admins, {userStats?.totalStudents || 0} students
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 
 						{/* Total Topics */}
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3 }}>
-								<Typography variant="caption" color="text.secondary">
-									Active Topics
-								</Typography>
-								<Typography variant="h4" fontWeight={700} color="primary.main">
-									{topicStats?.activeTopics || 0}
-								</Typography>
-								<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-									{topicStats?.totalInputsLinked || 0} inputs linked
-								</Typography>
-							</Paper>
+							{topicLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
+									<Typography variant="caption" color="text.secondary">
+										Active Topics
+									</Typography>
+									<Typography variant="h4" fontWeight={700} color="primary.main">
+										{topicStats?.activeTopics || 0}
+									</Typography>
+									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+										{topicStats?.totalInputsLinked || 0} inputs linked
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 					</Grid>
 
 					{/* Stats Cards Row 2 - Input Status */}
 					<Grid container spacing={3} sx={{ mb: 4 }}>
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3, bgcolor: "warning.light" }}>
-								<Typography variant="caption" color="warning.dark">
-									Pending Review
-								</Typography>
-								<Typography variant="h4" fontWeight={700} color="warning.dark">
-									{inputStats?.pendingInputs || 0}
-								</Typography>
-							</Paper>
+							{inputLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, bgcolor: "warning.light", height: "100%" }}>
+									<Typography variant="caption" color="warning.dark">
+										Pending Review
+									</Typography>
+									<Typography variant="h4" fontWeight={700} color="warning.dark">
+										{inputStats?.pendingInputs || 0}
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3, bgcolor: "info.light" }}>
-								<Typography variant="caption" color="info.dark">
-									Under Review
-								</Typography>
-								<Typography variant="h4" fontWeight={700} color="info.dark">
-									{inputStats?.reviewedInputs || 0}
-								</Typography>
-							</Paper>
+							{inputLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, bgcolor: "info.light", height: "100%" }}>
+									<Typography variant="caption" color="info.dark">
+										Under Review
+									</Typography>
+									<Typography variant="h4" fontWeight={700} color="info.dark">
+										{inputStats?.reviewedInputs || 0}
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3, bgcolor: "success.light" }}>
-								<Typography variant="caption" color="success.dark">
-									Resolved
-								</Typography>
-								<Typography variant="h4" fontWeight={700} color="success.dark">
-									{inputStats?.resolvedInputs || 0}
-								</Typography>
-							</Paper>
+							{inputLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, bgcolor: "success.light", height: "100%" }}>
+									<Typography variant="caption" color="success.dark">
+										Resolved
+									</Typography>
+									<Typography variant="h4" fontWeight={700} color="success.dark">
+										{inputStats?.resolvedInputs || 0}
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 
 						<Grid item xs={12} sm={6} md={3}>
-							<Paper elevation={2} sx={{ p: 3 }}>
-								<Typography variant="caption" color="text.secondary">
-									Avg Quality Score
-								</Typography>
-								<Typography variant="h4" fontWeight={700} color="primary.main">
-									{inputStats?.averageQualityScore?.toFixed(1) || "N/A"}
-								</Typography>
-							</Paper>
+							{inputLoading ? (
+								<StatCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
+									<Typography variant="caption" color="text.secondary">
+										Avg Quality Score
+									</Typography>
+									<Typography variant="h4" fontWeight={700} color="primary.main">
+										{inputStats?.averageQualityScore?.toFixed(1) || "N/A"}
+									</Typography>
+								</Paper>
+							)}
 						</Grid>
 					</Grid>
 
 					{/* Sentiment Distribution */}
 					<Grid container spacing={3} sx={{ mb: 4 }}>
 						<Grid item xs={12} md={6}>
-							<Paper elevation={2} sx={{ p: 3 }}>
-								<Typography variant="h6" gutterBottom fontWeight={600}>
-									Sentiment Distribution
-								</Typography>
-								<Box sx={{ mt: 2 }}>
-									<Box
-										sx={{
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center",
-											mb: 2,
-										}}
-									>
-										<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-											<Box
-												sx={{
-													width: 16,
-													height: 16,
-													borderRadius: "50%",
-													bgcolor: "success.main",
-												}}
-											/>
-											<Typography variant="body2">Positive</Typography>
+							{inputLoading ? (
+								<ChartCardSkeleton />
+							) : (
+								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
+									<Typography variant="h6" gutterBottom fontWeight={600}>
+										Sentiment Distribution
+									</Typography>
+									<Box sx={{ mt: 2 }}>
+										<Box
+											sx={{
+												display: "flex",
+												justifyContent: "space-between",
+												alignItems: "center",
+												mb: 2,
+											}}
+										>
+											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+												<Box
+													sx={{
+														width: 16,
+														height: 16,
+														borderRadius: "50%",
+														bgcolor: "success.main",
+													}}
+												/>
+												<Typography variant="body2">Positive</Typography>
+											</Box>
+											<Typography variant="h6" fontWeight={600}>
+												{inputStats?.positiveCount || 0}
+											</Typography>
 										</Box>
-										<Typography variant="h6" fontWeight={600}>
-											{inputStats?.positiveCount || 0}
-										</Typography>
-									</Box>
 
-									<Box
-										sx={{
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center",
-											mb: 2,
-										}}
-									>
-										<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-											<Box
-												sx={{
-													width: 16,
-													height: 16,
-													borderRadius: "50%",
-													bgcolor: "grey.500",
-												}}
-											/>
-											<Typography variant="body2">Neutral</Typography>
+										<Box
+											sx={{
+												display: "flex",
+												justifyContent: "space-between",
+												alignItems: "center",
+												mb: 2,
+											}}
+										>
+											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+												<Box
+													sx={{
+														width: 16,
+														height: 16,
+														borderRadius: "50%",
+														bgcolor: "grey.500",
+													}}
+												/>
+												<Typography variant="body2">Neutral</Typography>
+											</Box>
+											<Typography variant="h6" fontWeight={600}>
+												{inputStats?.neutralCount || 0}
+											</Typography>
 										</Box>
-										<Typography variant="h6" fontWeight={600}>
-											{inputStats?.neutralCount || 0}
-										</Typography>
-									</Box>
 
-									<Box
-										sx={{
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center",
-											mb: 2,
-										}}
-									>
-										<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-											<Box
-												sx={{
-													width: 16,
-													height: 16,
-													borderRadius: "50%",
-													bgcolor: "error.main",
-												}}
-											/>
-											<Typography variant="body2">Negative</Typography>
+										<Box
+											sx={{
+												display: "flex",
+												justifyContent: "space-between",
+												alignItems: "center",
+												mb: 2,
+											}}
+										>
+											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+												<Box
+													sx={{
+														width: 16,
+														height: 16,
+														borderRadius: "50%",
+														bgcolor: "error.main",
+													}}
+												/>
+												<Typography variant="body2">Negative</Typography>
+											</Box>
+											<Typography variant="h6" fontWeight={600}>
+												{inputStats?.negativeCount || 0}
+											</Typography>
 										</Box>
-										<Typography variant="h6" fontWeight={600}>
-											{inputStats?.negativeCount || 0}
-										</Typography>
 									</Box>
-								</Box>
-							</Paper>
+								</Paper>
+							)}
 						</Grid>
 
 						{/* Quick Actions */}
 						<Grid item xs={12} md={6}>
-							<Paper elevation={2} sx={{ p: 3 }}>
+							<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
 								<Typography variant="h6" gutterBottom fontWeight={600}>
 									Quick Actions
 								</Typography>

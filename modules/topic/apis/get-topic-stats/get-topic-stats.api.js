@@ -18,7 +18,14 @@ export function getTopicStats() {
 
 export const getTopicStatsQueryKey = () => ["topics", "stats"];
 
-export const selectTopicStatsQueryData = (response) => response;
+export const selectTopicStatsQueryData = (response) => {
+	if (!response) return null;
+	return {
+		activeTopics: response.totalTopics || 0,
+		totalInputsLinked: response.totalInputsInTopics || 0,
+		topicsWithSummaries: response.topicsWithAISummaries || 0,
+	};
+};
 
 export function useGetTopicStats(queryProps = {}) {
 	return useQuery({
