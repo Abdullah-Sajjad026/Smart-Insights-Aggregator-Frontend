@@ -27,3 +27,5 @@ export * from "./topbar";
 export * from "./importance-badge";
 export * from "./sentiment-indicator";
 export * from "./theme-chip";
+export * from "./ai-summary-card";
+export * from "./stats-overview";

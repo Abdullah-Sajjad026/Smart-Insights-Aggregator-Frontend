@@ -10,10 +10,13 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Alert from "@mui/material/Alert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import { toast } from "react-toastify";
+import { useQueryClient } from "react-query";
 import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
-import { MainContainer, Loader } from "modules/shared/components";
-import { useGetInquiryById } from "modules/inquiry";
+import { MainContainer, Loader, LoadingButton, AiSummaryCard, StatsOverview } from "modules/shared/components";
+import { useGetInquiryById, useGenerateInquirySummaryMutation, getInquiryByIdQueryKey } from "modules/inquiry";
 import { useGetAllInputs, InputCard } from "modules/input";
 import { withAdmin } from "modules/user";
 import { InquiryStatus, Sentiment, InputStatus } from "types/api";
@@ -31,6 +34,7 @@ function InquiryDetailPage() {
 	const router = useRouter();
 	const { inquiryId } = router.query;
 	const [activeTab, setActiveTab] = useState(0);
+	const queryClient = useQueryClient();
 
 	// Fetch inquiry details
 	const { data: inquiry, isLoading: inquiryLoading, isError: inquiryError } = useGetInquiryById(inquiryId, {
@@ -47,6 +51,23 @@ function InquiryDetailPage() {
 	});
 
 	const inquiryInputs = inputsData?.data || [];
+
+	const generateSummaryMutation = useGenerateInquirySummaryMutation({
+		onSuccess: () => {
+			toast.success("Summary generation started. It will appear shortly.");
+			queryClient.invalidateQueries(getInquiryByIdQueryKey(inquiryId));
+			setTimeout(() => {
+				queryClient.invalidateQueries(getInquiryByIdQueryKey(inquiryId));
+			}, 2000);
+		},
+		onError: () => {
+			toast.error("Failed to start summary generation");
+		},
+	});
+
+	const handleGenerateSummary = () => {
+		generateSummaryMutation.mutate(inquiryId);
+	};
 
 	// Loading state
 	if (inquiryLoading || !inquiryId) {
@@ -101,28 +122,35 @@ function InquiryDetailPage() {
 					</Button>
 
 					{/* Header */}
-					<Box sx={{ mb: 3 }}>
+					<Box sx={{ mb: 4 }}>
 						<Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-							<Typography variant="h5" fontWeight={600}>
+							<Typography variant="h3" fontWeight={800} color="text.primary">
 								{inquiry.title || "Inquiry"}
 							</Typography>
 							<Chip
 								label={INQUIRY_STATUS_LABELS[inquiry.status] || inquiry.status}
 								color={getStatusColor(inquiry.status)}
+								variant="filled"
+								sx={{ fontWeight: 600 }}
 							/>
 						</Box>
-						<Paper variant="outlined" sx={{ p: 2, bgcolor: "grey.50" }}>
-							<Typography variant="body1" sx={{ lineHeight: 1.8 }}>
+						<Paper variant="outlined" sx={{ p: 3, bgcolor: "grey.50", borderRadius: 2 }}>
+							<Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: "1.1rem" }}>
 								{inquiry.body}
 							</Typography>
 						</Paper>
 					</Box>
 
+					{/* Stats Overview */}
+					{inquiry.stats && <StatsOverview stats={inquiry.stats} />}
+
+
+
 					{/* Tabs */}
 					<Paper elevation={2}>
 						<Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
 							<Tab label="Overview" />
-							<Tab label={`Responses (${inquiry.totalInputs || 0})`} />
+							<Tab label={`Responses (${inquiry.stats?.totalResponses || 0})`} />
 						</Tabs>
 
 						{/* Tab 1: Overview */}
@@ -151,114 +179,50 @@ function InquiryDetailPage() {
 											</Typography>
 										</Grid>
 									)}
-									<Grid item xs={12} sm={6} md={4}>
-										<Typography variant="caption" color="text.secondary">
-											Total Responses
-										</Typography>
-										<Typography variant="h6" fontWeight={600} color="primary.main">
-											{inquiry.totalInputs || 0}
-										</Typography>
-									</Grid>
 								</Grid>
 
 								{/* Target Audience */}
-								{inquiry.targetDepartments?.length > 0 && (
+								{(inquiry.targetDepartments?.length > 0 || inquiry.targetPrograms?.length > 0 || inquiry.targetSemesters?.length > 0) && (
 									<Box sx={{ mt: 3 }}>
-										<Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-											Target Departments
-										</Typography>
+										<Typography variant="subtitle2" gutterBottom>Target Audience</Typography>
 										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-											{inquiry.targetDepartments.map((dept, idx) => (
-												<Chip key={idx} label={dept} size="small" color="primary" variant="outlined" />
+											{inquiry.targetDepartments?.map((dept, idx) => (
+												<Chip key={`dept-${idx}`} label={dept} size="small" color="primary" variant="outlined" />
+											))}
+											{inquiry.targetPrograms?.map((prog, idx) => (
+												<Chip key={`prog-${idx}`} label={prog} size="small" color="secondary" variant="outlined" />
+											))}
+											{inquiry.targetSemesters?.map((sem, idx) => (
+												<Chip key={`sem-${idx}`} label={`Sem ${sem}`} size="small" variant="outlined" />
 											))}
 										</Box>
 									</Box>
 								)}
+							</Box>
 
-								{inquiry.targetPrograms?.length > 0 && (
-									<Box sx={{ mt: 2 }}>
-										<Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-											Target Programs
-										</Typography>
-										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-											{inquiry.targetPrograms.map((program, idx) => (
-												<Chip key={idx} label={program} size="small" color="secondary" variant="outlined" />
-											))}
-										</Box>
-									</Box>
-								)}
-
-								{inquiry.targetSemesters?.length > 0 && (
-									<Box sx={{ mt: 2 }}>
-										<Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-											Target Semesters
-										</Typography>
-										<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-											{inquiry.targetSemesters.map((semester, idx) => (
-												<Chip key={idx} label={semester} size="small" variant="outlined" />
-											))}
-										</Box>
-									</Box>
-								)}
-								{/* AI Summary Section */}
-								{inquiry.aiSummary && (
-									<Box sx={{ mt: 4, mb: 2 }}>
-										<Typography variant="h6" fontWeight={600} gutterBottom>
-											AI Executive Summary
-										</Typography>
-										<Paper elevation={1} sx={{ p: 3, mb: 3, bgcolor: "primary.50" }}>
-											<Typography variant="body1" paragraph>
-												{inquiry.aiSummary.executiveSummaryData?.["summary"] ||
-												 Object.values(inquiry.aiSummary.executiveSummaryData || {}).join(" ") ||
-												 "No summary available."}
-											</Typography>
-											<Typography variant="caption" color="text.secondary">
-												Generated on{" "}
-												{DateTime.fromISO(inquiry.aiSummary.generatedAt).toFormat(
-													"MMM dd, yyyy HH:mm"
-												)}
-											</Typography>
-										</Paper>
-
-										{/* Suggested Actions */}
-										{inquiry.aiSummary.suggestedPrioritizedActions?.length > 0 && (
-											<>
-												<Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-													Suggested Actions
-												</Typography>
-												<Grid container spacing={2}>
-													{inquiry.aiSummary.suggestedPrioritizedActions.map((action, index) => (
-														<Grid item xs={12} md={6} key={index}>
-															<Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
-																<Typography variant="subtitle2" fontWeight={700} gutterBottom>
-																	{action.action}
-																</Typography>
-																<Box sx={{ mb: 1 }}>
-																	<Chip
-																		label={action.impact}
-																		size="small"
-																		color={
-																			action.impact === "High"
-																				? "error"
-																				: action.impact === "Medium"
-																				? "warning"
-																				: "info"
-																		}
-																		sx={{ mr: 1 }}
-																	/>
-																	<Typography variant="caption" color="text.secondary">
-																		{action.responseCount} responses
-																	</Typography>
-																</Box>
-																<Typography variant="body2" color="text.secondary" paragraph>
-																	{action.supportingReasoning}
-																</Typography>
-															</Paper>
-														</Grid>
-													))}
-												</Grid>
-											</>
-										)}
+							{/* AI Summary Section */}
+							<Box sx={{ mt: 4 }}>
+								{inquiry.aiSummary ? (
+									<AiSummaryCard
+										summary={inquiry.aiSummary}
+										onRegenerate={handleGenerateSummary}
+										isRegenerating={generateSummaryMutation.isLoading}
+										title="Inquiry Executive Summary"
+									/>
+								) : (
+									<Box>
+										<Alert severity="info" sx={{ mb: 2 }}>
+											No AI summary generated yet.
+										</Alert>
+										<LoadingButton
+											startIcon={<AutoAwesomeIcon />}
+											onClick={handleGenerateSummary}
+											loading={generateSummaryMutation.isLoading}
+											disabled={!inquiry.stats?.totalResponses}
+											variant="contained"
+										>
+											Generate AI Summary
+										</LoadingButton>
 									</Box>
 								)}
 							</Box>

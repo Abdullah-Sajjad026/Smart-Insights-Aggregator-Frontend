@@ -89,7 +89,8 @@ function AdminInquiriesPage() {
 	const handleCreate = data => {
 		// Transform form data to backend request format
 		const requestData = {
-			body: `**${data.title}**\n\n${data.description}`,
+			title: data.title,
+			body: data.description,
 			status: data.status,
 			facultyIds: data.targetFaculties.map(f => f.id),
 			departmentIds: data.targetDepartments.map(d => d.id),

@@ -13,7 +13,7 @@ import Alert from "@mui/material/Alert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
-import { MainContainer, Loader } from "modules/shared/components";
+import { MainContainer, Loader, AiSummaryCard, StatsOverview } from "modules/shared/components";
 import { useGetTopicById, useGenerateTopicSummaryMutation, getTopicByIdQueryKey } from "modules/topic";
 import { toast } from "react-toastify";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -86,6 +86,39 @@ function TopicDetailPage() {
 		router.push(`/admin/inputs/${inputId}`);
 	};
 
+	// Calculate stats from inputs
+	const calculateStats = () => {
+		if (!topic?.inputs) return null;
+
+		const inputs = topic.inputs;
+		const totalResponses = inputs.length;
+
+		const sentimentBreakdown = {
+			Positive: inputs.filter(i => i.sentiment === "Positive").length,
+			Neutral: inputs.filter(i => i.sentiment === "Neutral").length,
+			Negative: inputs.filter(i => i.sentiment === "Negative").length,
+		};
+
+		const severityBreakdown = {
+			Low: inputs.filter(i => i.metrics?.severity === 1).length,
+			Medium: inputs.filter(i => i.metrics?.severity === 2).length,
+			High: inputs.filter(i => i.metrics?.severity === 3).length,
+		};
+
+		const averageQuality = totalResponses > 0
+			? inputs.reduce((sum, i) => sum + (i.metrics?.quality || 0), 0) / totalResponses * 10 // Convert 0-1 to 0-10
+			: 0;
+
+		return {
+			totalResponses,
+			sentimentBreakdown,
+			severityBreakdown,
+			averageQuality
+		};
+	};
+
+	const stats = calculateStats();
+
 	return (
 		<RootLayout>
 			<MainContainer>
@@ -100,19 +133,28 @@ function TopicDetailPage() {
 					</Button>
 
 					{/* Header */}
-					<Box sx={{ mb: 3 }}>
+					<Box sx={{ mb: 4 }}>
 						<Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}>
-							<Typography variant="h4" fontWeight={700}>
+							<Typography variant="h3" fontWeight={800} color="text.primary">
 								{topic.name}
 							</Typography>
 							{topic.department && (
-								<Chip label={topic.department} color="primary" variant="outlined" size="small" />
+								<Chip
+									label={topic.department}
+									color="primary"
+									variant="filled"
+									size="medium"
+									sx={{ fontWeight: 600 }}
+								/>
 							)}
 						</Box>
-						<Typography variant="body2" color="text.secondary">
-							Created on {DateTime.fromISO(topic.createdAt).toFormat("MMM dd, yyyy")} • {topic.inputCount} Responses
+						<Typography variant="body1" color="text.secondary">
+							Topic created on {DateTime.fromISO(topic.createdAt).toFormat("MMMM dd, yyyy")}
 						</Typography>
 					</Box>
+
+					{/* Stats Overview */}
+					{stats && <StatsOverview stats={stats} />}
 
 					{/* Tabs */}
 					<Paper elevation={2}>
@@ -125,84 +167,22 @@ function TopicDetailPage() {
 						<TabPanel value={activeTab} index={0}>
 							{/* AI Summary Section */}
 							{topic.aiSummary ? (
-								<Box>
-									<Typography variant="h6" fontWeight={600} gutterBottom>
-										AI Executive Summary
-									</Typography>
-									<Button
-										startIcon={<RefreshIcon />}
-										onClick={handleRegenerateSummary}
-										disabled={generateSummaryMutation.isLoading}
-										size="small"
-										sx={{ float: "right", mt: -5 }}
-									>
-										Regenerate Summary
-									</Button>
-									<Paper elevation={1} sx={{ p: 3, mb: 4, bgcolor: "primary.50" }}>
-										<Typography variant="body1" paragraph>
-											{topic.aiSummary.executiveSummaryData?.["summary"] ||
-											 Object.values(topic.aiSummary.executiveSummaryData || {}).join(" ") ||
-											 "No summary available."}
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											Generated on{" "}
-											{DateTime.fromISO(topic.aiSummary.generatedAt).toFormat(
-												"MMM dd, yyyy HH:mm"
-											)}
-										</Typography>
-									</Paper>
-
-									{/* Suggested Actions */}
-									{topic.aiSummary.suggestedPrioritizedActions?.length > 0 && (
-										<>
-											<Typography variant="h6" fontWeight={600} gutterBottom>
-												Suggested Actions
-											</Typography>
-											<Grid container spacing={2}>
-												{topic.aiSummary.suggestedPrioritizedActions.map((action, index) => (
-													<Grid item xs={12} md={6} key={index}>
-														<Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
-															<Typography variant="subtitle1" fontWeight={700} gutterBottom>
-																{action.action}
-															</Typography>
-															<Box sx={{ mb: 1 }}>
-																<Chip
-																	label={action.impact}
-																	size="small"
-																	color={
-																		action.impact === "High"
-																			? "error"
-																			: action.impact === "Medium"
-																			? "warning"
-																			: "info"
-																	}
-																	sx={{ mr: 1 }}
-																/>
-																<Typography variant="caption" color="text.secondary">
-																	{action.responseCount} responses
-																</Typography>
-															</Box>
-															<Typography variant="body2" color="text.secondary" paragraph>
-																{action.supportingReasoning}
-															</Typography>
-														</Paper>
-													</Grid>
-												))}
-											</Grid>
-										</>
-									)}
-								</Box>
+								<AiSummaryCard
+									summary={topic.aiSummary}
+									onRegenerate={handleRegenerateSummary}
+									isRegenerating={generateSummaryMutation.isLoading}
+									title="Topic Executive Summary"
+								/>
 							) : (
 								<Box>
-									<Alert severity="info">
+									<Alert severity="info" sx={{ mb: 2 }}>
 										No AI summary generated yet. Summaries are generated periodically for active topics.
 									</Alert>
 									<Button
 										startIcon={<RefreshIcon />}
 										onClick={handleRegenerateSummary}
 										disabled={generateSummaryMutation.isLoading}
-										variant="outlined"
-										sx={{ mt: 2 }}
+										variant="contained"
 									>
 										Generate Summary Now
 									</Button>

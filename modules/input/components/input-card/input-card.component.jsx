@@ -55,9 +55,9 @@ export function InputCard({
 				>
 					<Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
 						<Chip
-							label={input.type === "INQUIRY_LINKED" ? "Inquiry Response" : "General Feedback"}
+							label={input.type === "InquiryLinked" ? "Inquiry Response" : "General Feedback"}
 							size="small"
-							color={input.type === "INQUIRY_LINKED" ? "primary" : "default"}
+							color={input.type === "InquiryLinked" ? "primary" : "default"}
 							variant="outlined"
 						/>
 						{input.status && (
@@ -65,9 +65,9 @@ export function InputCard({
 								label={input.status}
 								size="small"
 								color={
-									input.status === "PROCESSED"
+									input.status === "Reviewed" || input.status === "Processed"
 										? "success"
-										: input.status === "PROCESSING"
+										: input.status === "Processing" || input.status === "Pending"
 											? "warning"
 											: "default"
 								}
