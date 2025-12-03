@@ -507,6 +507,10 @@ function AdminUsersPage() {
 													<TableCell>Name</TableCell>
 													<TableCell>Email</TableCell>
 													<TableCell>Role</TableCell>
+													<TableCell>Department</TableCell>
+													<TableCell>Program</TableCell>
+													<TableCell>Semester</TableCell>
+
 													<TableCell>Created</TableCell>
 													<TableCell align="right">Actions</TableCell>
 												</TableRow>
@@ -533,6 +537,30 @@ function AdminUsersPage() {
 																size="small"
 																color={getRoleColor(user.role)}
 															/>
+														</TableCell>
+														<TableCell>
+															<Typography
+																variant="body2"
+																color="text.secondary"
+															>
+																{user.department || "-"}
+															</Typography>
+														</TableCell>
+														<TableCell>
+															<Typography
+																variant="body2"
+																color="text.secondary"
+															>
+																{user.program || "-"}
+															</Typography>
+														</TableCell>
+														<TableCell>
+															<Typography
+																variant="body2"
+																color="text.secondary"
+															>
+																{user.semester || "-"}
+															</Typography>
 														</TableCell>
 														<TableCell>
 															<Typography
