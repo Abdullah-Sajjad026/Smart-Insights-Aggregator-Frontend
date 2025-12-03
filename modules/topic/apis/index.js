@@ -6,3 +6,4 @@ export * from "./update-topic/update-topic.api";
 export * from "./delete-topic/delete-topic.api";
 export * from "./get-topic-stats/get-topic-stats.api";
 export * from "./generate-topic-summary/generate-topic-summary.api";
+export * from "./archive-topic/archive-topic.api";

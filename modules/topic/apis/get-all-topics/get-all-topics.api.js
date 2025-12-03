@@ -15,33 +15,33 @@ import apiClient from "pages/api/AxiosInstance";
  * Get all topics
  * Maps to: GET /api/topics
  * @param {Object} params
- * @param {number} [params.page=1]
- * @param {number} [params.pageSize=25]
- * @param {boolean} [params.isActive]
- * @returns {Promise<PaginatedResult<TopicDto>>}
+ * @param {number} [params.page]
+ * @param {number} [params.pageSize]
+ * @param {boolean} [params.includeArchived]
+ * @returns {Promise<Object>}
  */
-export function getAllTopics(params = {}) {
-	return apiClient.get("/topics", { params });
+export function getAllTopics({ page = 1, pageSize = 20, includeArchived = false } = {}) {
+	return apiClient.get("/topics", {
+		params: { page, pageSize, includeArchived },
+	});
 }
 
-export const getGetAllTopicsQueryKey = (params) => ["topics", "all", params];
+export const getAllTopicsQueryKey = (params) => ["topics", params];
 
-export const selectGetAllTopicsQueryData = (response) => ({
-	data: response.items,
-	pagination: {
-		totalItems: response.totalCount,
-		pageNumber: response.pageNumber,
-		pageSize: response.pageSize,
-		totalPages: response.totalPages,
-	},
-});
-
-export function useGetAllTopics(params = {}, queryProps = {}) {
+export function useGetAllTopics(params = {}, queryOptions = {}) {
 	return useQuery({
+		queryKey: getAllTopicsQueryKey(params),
 		queryFn: () => getAllTopics(params),
-		queryKey: getGetAllTopicsQueryKey(params),
-		select: selectGetAllTopicsQueryData,
+		select: (response) => ({
+			data: response.items,
+			pagination: {
+				totalItems: response.totalCount,
+				pageNumber: response.currentPage,
+				pageSize: response.pageSize,
+				totalPages: response.totalPages,
+			},
+		}),
 		staleTime: TOPIC_STALE_TIME,
-		...queryProps,
+		...queryOptions,
 	});
 }

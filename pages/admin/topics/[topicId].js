@@ -11,10 +11,11 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Alert from "@mui/material/Alert";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import { DateTime } from "luxon";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
 import { MainContainer, Loader, AiSummaryCard, StatsOverview } from "modules/shared/components";
-import { useGetTopicById, useGenerateTopicSummaryMutation, getTopicByIdQueryKey } from "modules/topic";
+import { useGetTopicById, useGenerateTopicSummaryMutation, useArchiveTopicMutation, getTopicByIdQueryKey } from "modules/topic";
 import { toast } from "react-toastify";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { InputCard } from "modules/input";
@@ -58,6 +59,22 @@ function TopicDetailPage() {
 
 	const handleRegenerateSummary = () => {
 		generateSummaryMutation.mutate(topicId);
+	};
+
+	const archiveMutation = useArchiveTopicMutation({
+		onSuccess: () => {
+			toast.success("Topic archived successfully!");
+			router.push("/admin/topics");
+		},
+		onError: () => {
+			toast.error("Failed to archive topic");
+		},
+	});
+
+	const handleArchiveClick = () => {
+		if (confirm("Are you sure you want to archive this topic?")) {
+			archiveMutation.mutate(topicId);
+		}
 	};
 
 	// Loading state
@@ -131,6 +148,17 @@ function TopicDetailPage() {
 					>
 						Back to Topics
 					</Button>
+					<Box sx={{ display: "flex", justifyContent: "flex-end", mb: -5 }}>
+						<Button
+							variant="outlined"
+							color="warning"
+							startIcon={<ArchiveIcon />}
+							onClick={handleArchiveClick}
+							disabled={archiveMutation.isLoading}
+						>
+							Archive Topic
+						</Button>
+					</Box>
 
 					{/* Header */}
 					<Box sx={{ mb: 4 }}>

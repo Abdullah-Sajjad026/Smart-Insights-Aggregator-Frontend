@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
+import Chip from "@mui/material/Chip";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -20,7 +21,10 @@ import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import ArchiveIcon from "@mui/icons-material/Archive";
+import UnarchiveIcon from "@mui/icons-material/Unarchive";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
 import { useQueryClient } from "react-query";
@@ -33,7 +37,8 @@ import {
 	useGetAllTopics,
 	useCreateTopicMutation,
 	useUpdateTopicMutation,
-	useDeleteTopicMutation,
+	useArchiveTopicMutation,
+	useUnarchiveTopicMutation,
 	getAllTopicsQueryKey,
 } from "modules/topic";
 import { withAdmin } from "modules/user";
@@ -157,6 +162,7 @@ function AdminTopicsPage() {
 	const queryClient = useQueryClient();
 	const [page, setPage] = useState(1);
 	const [pageSize] = useState(10);
+	const [showArchived, setShowArchived] = useState(false);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [selectedTopic, setSelectedTopic] = useState(null);
 
@@ -164,16 +170,28 @@ function AdminTopicsPage() {
 	const { data, isLoading, isError } = useGetAllTopics({
 		page,
 		pageSize,
+		includeArchived: showArchived,
 	});
 
-	// Delete topic mutation
-	const deleteMutation = useDeleteTopicMutation({
+	// Archive topic mutation
+	const archiveMutation = useArchiveTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Topic deleted successfully!");
-			queryClient.invalidateQueries(getAllTopicsQueryKey());
+			toast.success(response.message || "Topic archived successfully!");
+			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
 		},
 		onError: (error) => {
-			toast.error(getApiErrorMessage(error, "Failed to delete topic"));
+			toast.error(getApiErrorMessage(error, "Failed to archive topic"));
+		},
+	});
+
+	// Unarchive topic mutation
+	const unarchiveMutation = useUnarchiveTopicMutation({
+		onSuccess: (response) => {
+			toast.success(response.message || "Topic unarchived successfully!");
+			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
+		},
+		onError: (error) => {
+			toast.error(getApiErrorMessage(error, "Failed to unarchive topic"));
 		},
 	});
 
@@ -191,9 +209,15 @@ function AdminTopicsPage() {
 		setDialogOpen(true);
 	};
 
-	const handleDeleteClick = (topic) => {
-		if (confirm(`Are you sure you want to delete topic "${topic.name}"?`)) {
-			deleteMutation.mutate(topic.id);
+	const handleArchiveClick = (topic) => {
+		if (confirm(`Are you sure you want to archive topic "${topic.name}"? It will be hidden from this list.`)) {
+			archiveMutation.mutate(topic.id);
+		}
+	};
+
+	const handleUnarchiveClick = (topic) => {
+		if (confirm(`Are you sure you want to unarchive topic "${topic.name}"?`)) {
+			unarchiveMutation.mutate(topic.id);
 		}
 	};
 
@@ -225,13 +249,25 @@ function AdminTopicsPage() {
 								Organize feedback into topics and themes
 							</Typography>
 						</Box>
-						<Button
-							variant="contained"
-							startIcon={<AddIcon />}
-							onClick={handleCreateClick}
-						>
-							Add Topic
-						</Button>
+						<Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+							<FormControlLabel
+								control={
+									<Switch
+										checked={showArchived}
+										onChange={(e) => setShowArchived(e.target.checked)}
+										color="primary"
+									/>
+								}
+								label="Show Archived"
+							/>
+							<Button
+								variant="contained"
+								startIcon={<AddIcon />}
+								onClick={handleCreateClick}
+							>
+								Add Topic
+							</Button>
+						</Box>
 					</Box>
 
 					{/* Loading State */}
@@ -283,20 +319,38 @@ function AdminTopicsPage() {
 											</TableHead>
 											<TableBody>
 												{data.data.map((topic) => (
-													<TableRow key={topic.id} hover>
+													<TableRow
+														key={topic.id}
+														hover
+														sx={{
+															opacity: topic.isArchived ? 0.7 : 1,
+															bgcolor: topic.isArchived ? "action.hover" : "inherit",
+														}}
+													>
 														<TableCell>
-															<Typography
-																variant="body2"
-																fontWeight={600}
-																sx={{
-																	cursor: "pointer",
-																	color: "primary.main",
-																	"&:hover": { textDecoration: "underline" },
-																}}
-																onClick={() => router.push(`/admin/topics/${topic.id}`)}
-															>
-																{topic.name}
-															</Typography>
+															<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+																<Typography
+																	variant="body2"
+																	fontWeight={600}
+																	sx={{
+																		cursor: "pointer",
+																		color: "primary.main",
+																		"&:hover": { textDecoration: "underline" },
+																	}}
+																	onClick={() => router.push(`/admin/topics/${topic.id}`)}
+																>
+																	{topic.name}
+																</Typography>
+																{topic.isArchived && (
+																	<Chip
+																		label="Archived"
+																		size="small"
+																		color="default"
+																		variant="outlined"
+																		sx={{ height: 20, fontSize: "0.75rem" }}
+																	/>
+																)}
+															</Box>
 														</TableCell>
 
 														<TableCell>
@@ -319,14 +373,27 @@ function AdminTopicsPage() {
 															>
 																<EditIcon fontSize="small" />
 															</IconButton> */}
-															<IconButton
-																size="small"
-																color="error"
-																onClick={() => handleDeleteClick(topic)}
-																disabled={deleteMutation.isLoading}
-															>
-																<DeleteIcon fontSize="small" />
-															</IconButton>
+															{topic.isArchived ? (
+																<IconButton
+																	size="small"
+																	color="success"
+																	onClick={() => handleUnarchiveClick(topic)}
+																	disabled={unarchiveMutation.isLoading}
+																	title="Unarchive Topic"
+																>
+																	<UnarchiveIcon fontSize="small" />
+																</IconButton>
+															) : (
+																<IconButton
+																	size="small"
+																	color="warning"
+																	onClick={() => handleArchiveClick(topic)}
+																	disabled={archiveMutation.isLoading}
+																	title="Archive Topic"
+																>
+																	<ArchiveIcon fontSize="small" />
+																</IconButton>
+															)}
 														</TableCell>
 													</TableRow>
 												))}
