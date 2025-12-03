@@ -69,8 +69,8 @@ function TopicFormDialog({ open, onClose, topic = null }) {
 
 	const createMutation = useCreateTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response?.message || "Topic created successfully!");
-			queryClient.invalidateQueries(getAllTopicsQueryKey());
+			toast.success("Topic created successfully!");
+			queryClient.invalidateQueries({queryKey: getAllTopicsQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -81,8 +81,8 @@ function TopicFormDialog({ open, onClose, topic = null }) {
 
 	const updateMutation = useUpdateTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response?.message || "Topic updated successfully!");
-			queryClient.invalidateQueries(getAllTopicsQueryKey());
+			toast.success("Topic updated successfully!");
+			queryClient.invalidateQueries({queryKey: getAllTopicsQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -176,8 +176,8 @@ function AdminTopicsPage() {
 	// Archive topic mutation
 	const archiveMutation = useArchiveTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response?.message || "Topic archived successfully!");
-			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
+			toast.success("Topic archived successfully!");
+			queryClient.invalidateQueries(	{queryKey: getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }), exact: false});
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error, "Failed to archive topic"));
@@ -187,8 +187,8 @@ function AdminTopicsPage() {
 	// Unarchive topic mutation
 	const unarchiveMutation = useUnarchiveTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response?.message || "Topic unarchived successfully!");
-			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
+			toast.success("Topic unarchived successfully!");
+			queryClient.invalidateQueries(	{queryKey: getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }), exact: false});
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error, "Failed to unarchive topic"));

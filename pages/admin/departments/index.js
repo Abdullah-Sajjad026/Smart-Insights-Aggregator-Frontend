@@ -60,8 +60,8 @@ function DepartmentFormDialog({ open, onClose, department = null }) {
 
 	const createMutation = useCreateDepartmentMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Department created successfully!");
-			queryClient.invalidateQueries(getAllDepartmentsQueryKey());
+			toast.success("Department created successfully!");
+			queryClient.invalidateQueries(	{queryKey: getAllDepartmentsQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -72,8 +72,8 @@ function DepartmentFormDialog({ open, onClose, department = null }) {
 
 	const updateMutation = useUpdateDepartmentMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Department updated successfully!");
-			queryClient.invalidateQueries(getAllDepartmentsQueryKey());
+			toast.success("Department updated successfully!");
+			queryClient.invalidateQueries({queryKey: getAllDepartmentsQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -148,8 +148,8 @@ function AdminDepartmentsPage() {
 	// Delete department mutation
 	const deleteMutation = useDeleteDepartmentMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Department deleted successfully!");
-			queryClient.invalidateQueries(getAllDepartmentsQueryKey());
+			toast.success("Department deleted successfully!");
+			queryClient.invalidateQueries(	{queryKey: getAllDepartmentsQueryKey(), exact: false});
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error, "Failed to delete department"));

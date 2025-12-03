@@ -117,7 +117,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	const createMutation = useCreateUserMutation({
 		onSuccess: response => {
 			toast.success(response.message || "User created successfully!");
-			queryClient.invalidateQueries(getAllUsersQueryKey());
+			queryClient.invalidateQueries({queryKey: getAllUsersQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -129,7 +129,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	const updateMutation = useUpdateUserMutation({
 		onSuccess: response => {
 			toast.success(response.message || "User updated successfully!");
-			queryClient.invalidateQueries(getAllUsersQueryKey());
+			queryClient.invalidateQueries({queryKey: getAllUsersQueryKey(), exact: false});
 			reset();
 			onClose();
 		},

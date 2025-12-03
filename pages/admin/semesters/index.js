@@ -63,7 +63,7 @@ function SemesterFormDialog({ open, onClose, semester = null }) {
 	const createMutation = useCreateSemesterMutation({
 		onSuccess: response => {
 			toast.success(response.message || "Semester created successfully!");
-			queryClient.invalidateQueries(getAllSemestersQueryKey());
+			queryClient.invalidateQueries({queryKey: getAllSemestersQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -75,7 +75,7 @@ function SemesterFormDialog({ open, onClose, semester = null }) {
 	const updateMutation = useUpdateSemesterMutation({
 		onSuccess: response => {
 			toast.success(response.message || "Semester updated successfully!");
-			queryClient.invalidateQueries(getAllSemestersQueryKey());
+			queryClient.invalidateQueries({queryKey: getAllSemestersQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -166,7 +166,7 @@ function AdminSemestersPage() {
 	const deleteMutation = useDeleteSemesterMutation({
 		onSuccess: response => {
 			toast.success(response.message || "Semester deleted successfully!");
-			queryClient.invalidateQueries(getAllSemestersQueryKey());
+			queryClient.invalidateQueries({	queryKey: getAllSemestersQueryKey(), exact: false});
 		},
 		onError: error => {
 			toast.error(getApiErrorMessage(error, "Failed to delete semester"));

@@ -60,8 +60,8 @@ function ProgramFormDialog({ open, onClose, program = null }) {
 
 	const createMutation = useCreateProgramMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Program created successfully!");
-			queryClient.invalidateQueries(getAllProgramsQueryKey());
+			toast.success("Program created successfully!");
+			queryClient.invalidateQueries({queryKey: getAllProgramsQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -72,8 +72,8 @@ function ProgramFormDialog({ open, onClose, program = null }) {
 
 	const updateMutation = useUpdateProgramMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Program updated successfully!");
-			queryClient.invalidateQueries(getAllProgramsQueryKey());
+			toast.success("Program updated successfully!");
+			queryClient.invalidateQueries({queryKey: getAllProgramsQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
@@ -148,8 +148,10 @@ function AdminProgramsPage() {
 	// Delete program mutation
 	const deleteMutation = useDeleteProgramMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Program deleted successfully!");
-			queryClient.invalidateQueries(getAllProgramsQueryKey());
+						console.log({response}, "++==================")
+
+			toast.success("Program deleted successfully!");
+			queryClient.invalidateQueries({queryKey: getAllProgramsQueryKey(), exact: false});
 		},
 		onError: (error) => {
 			toast.error(getApiErrorMessage(error, "Failed to delete program"));
