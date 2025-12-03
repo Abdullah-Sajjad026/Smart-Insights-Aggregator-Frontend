@@ -5,13 +5,15 @@
  */
 
 // Inquiry status
+// DISABLED: Draft functionality removed - inquiries are created directly as Active
 export const INQUIRY_STATUS_ACTIVE = "Active";
-export const INQUIRY_STATUS_DRAFT = "Draft";
+// export const INQUIRY_STATUS_DRAFT = "Draft"; // DISABLED
+export const INQUIRY_STATUS_DRAFT = "Active"; // Now defaults to Active
 export const INQUIRY_STATUS_CLOSED = "Closed";
 
 export const inquiryStatusOptions = [
 	{ value: INQUIRY_STATUS_ACTIVE, label: "Active" },
-	{ value: INQUIRY_STATUS_DRAFT, label: "Draft" },
+	// { value: INQUIRY_STATUS_DRAFT, label: "Draft" }, // DISABLED
 	{ value: INQUIRY_STATUS_CLOSED, label: "Closed" },
 ];
 

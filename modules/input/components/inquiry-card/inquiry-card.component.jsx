@@ -54,7 +54,7 @@ export function InquiryCard({
 					}}
 				>
 					<Typography variant="h6" fontWeight={600} sx={{ flex: 1, mr: 2 }}>
-						Inquiry
+						{inquiry.title || "Untitled Inquiry"}
 					</Typography>
 					{showStatus && (
 						<Chip
@@ -64,8 +64,8 @@ export function InquiryCard({
 								isActive
 									? "success"
 									: inquiry.status?.toUpperCase() === "DRAFT"
-										? "warning"
-										: "default"
+									? "warning"
+									: "default"
 							}
 						/>
 					)}
@@ -73,27 +73,27 @@ export function InquiryCard({
 
 				{/* Body (Question Prompt) */}
 				<Typography
-					variant="body2"
+					variant="body1"
 					color="text.secondary"
 					sx={{ mb: 2, lineHeight: 1.6 }}
 				>
 					{inquiry.body || inquiry.description || "No content"}
 				</Typography>
 
-				{/* Date Range */}
-				<Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
+				{/* Date Range and Stats */}
+				<Box sx={{ display: "flex", gap: 6, mb: 2, flexWrap: "wrap" }}>
 					<Box>
 						<Typography variant="caption" color="text.secondary">
-							Sent Date
+							Started
 						</Typography>
 						<Typography variant="body2" fontWeight={500}>
-							{formatDate(inquiry.sentAt || inquiry.createdAt)}
+							{formatDate(inquiry.createdAt)}
 						</Typography>
 					</Box>
-					{inquiry.closedAt && (
+					{inquiry.closedAt ? (
 						<Box>
 							<Typography variant="caption" color="text.secondary">
-								Closed Date
+								Closed
 							</Typography>
 							<Typography
 								variant="body2"
@@ -103,13 +103,22 @@ export function InquiryCard({
 								{formatDate(inquiry.closedAt)}
 							</Typography>
 						</Box>
+					) : (
+						<Box>
+							<Typography variant="caption" color="success.main">
+								Status
+							</Typography>
+							<Typography variant="body2" fontWeight={500} color="success.main">
+								Active
+							</Typography>
+						</Box>
 					)}
 					{inquiry.stats?.totalResponses !== undefined && (
 						<Box>
 							<Typography variant="caption" color="text.secondary">
 								Responses
 							</Typography>
-							<Typography variant="body2" fontWeight={500}>
+							<Typography variant="body1" fontWeight={"bold"}>
 								{inquiry.stats.totalResponses}
 							</Typography>
 						</Box>

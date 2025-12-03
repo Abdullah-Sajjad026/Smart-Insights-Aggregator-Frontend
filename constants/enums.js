@@ -32,13 +32,14 @@ export const roleOptions = [
 
 export const INQUIRY_STATUS_LABELS = {
 	[InquiryStatus.Draft]: "Draft",
-	[InquiryStatus.Sent]: "Sent",
+	[InquiryStatus.Active]: "Active",
+	[InquiryStatus.Sent]: "Active", // Alias for backwards compatibility
 	[InquiryStatus.Closed]: "Closed",
 };
 
 export const inquiryStatusOptions = [
 	{ value: InquiryStatus.Draft, label: INQUIRY_STATUS_LABELS[InquiryStatus.Draft] },
-	{ value: InquiryStatus.Sent, label: INQUIRY_STATUS_LABELS[InquiryStatus.Sent] },
+	{ value: InquiryStatus.Active, label: INQUIRY_STATUS_LABELS[InquiryStatus.Active] },
 	{ value: InquiryStatus.Closed, label: INQUIRY_STATUS_LABELS[InquiryStatus.Closed] },
 ];
 

@@ -26,6 +26,14 @@ export function StatsOverview({ stats }) {
 		return Math.round((count / totalResponses) * 100);
 	};
 
+	// Find max count for severity to normalize bar heights
+	const maxSeverityCount = Math.max(
+		severityBreakdown["Low"] || 0,
+		severityBreakdown["Medium"] || 0,
+		severityBreakdown["High"] || 0,
+		1 // Avoid division by zero
+	);
+
 	return (
 		<Grid container spacing={3} sx={{ mb: 4 }}>
 			{/* Total Responses & Quality */}
@@ -110,15 +118,20 @@ export function StatsOverview({ stats }) {
 
 			{/* Severity Breakdown */}
 			<Grid item xs={12} md={4}>
-				<Paper variant="outlined" sx={{ p: 3, height: "100%" }}>
+				<Paper variant="outlined" sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
 					<Typography variant="subtitle2" color="text.secondary" gutterBottom>
 						SEVERITY BREAKDOWN
 					</Typography>
-					<Box sx={{ mt: 2, display: "flex", gap: 1, height: "100%", alignItems: "flex-end", pb: 1 }}>
+					<Box sx={{ mt: 2, display: "flex", gap: 2, alignItems: "flex-end", height: 100, maxHeight: 100 }}>
 						{["Low", "Medium", "High"].map((severity) => {
 							const count = severityBreakdown[severity] || 0;
-							const percentage = getPercentage(count);
-							const height = Math.max(percentage, 10); // Min height for visibility
+							// Calculate height relative to max count (proportional bar chart)
+							// Max bar height is 80px to fit within 100px container
+							const heightPixels = maxSeverityCount > 0
+								? Math.round((count / maxSeverityCount) * 80)
+								: 0;
+							const displayHeight = count > 0 ? Math.max(heightPixels, 16) : 8; // Min 16px if has data, 8px if zero
+
 							const color =
 								severity === "High"
 									? "error.main"
@@ -134,23 +147,24 @@ export function StatsOverview({ stats }) {
 										display: "flex",
 										flexDirection: "column",
 										alignItems: "center",
-										gap: 1,
+										gap: 0.5,
 									}}
 								>
-									<Typography variant="caption" fontWeight={700}>
+									<Typography variant="body1" fontWeight={700} sx={{ fontSize: "1.25rem" }}>
 										{count}
 									</Typography>
 									<Box
 										sx={{
 											width: "100%",
-											height: `${height}%`,
-											bgcolor: color,
+											height: `${displayHeight}px`,
+											maxHeight: "80px",
+											bgcolor: count > 0 ? color : "grey.200",
 											borderRadius: "4px 4px 0 0",
-											minHeight: 4,
-											transition: "height 0.5s",
+											transition: "height 0.3s ease-in-out",
+											opacity: count > 0 ? 1 : 0.3,
 										}}
 									/>
-									<Typography variant="caption" color="text.secondary">
+									<Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ mt: 0.5 }}>
 										{severity}
 									</Typography>
 								</Box>

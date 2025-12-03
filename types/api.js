@@ -44,13 +44,14 @@ export const Role = {
 };
 
 /**
- * @typedef {'Draft' | 'Sent' | 'Closed'} InquiryStatus
+ * @typedef {'Draft' | 'Active' | 'Closed'} InquiryStatus
  */
 
 /** @type {Object.<string, InquiryStatus>} */
 export const InquiryStatus = {
 	Draft: "Draft",
-	Sent: "Sent",
+	Active: "Active",
+	Sent: "Active", // Alias for backwards compatibility
 	Closed: "Closed",
 };
 

@@ -19,6 +19,7 @@ import {
 
 /**
  * Validation schema for inquiry form
+ * Note: startDate/endDate removed - using CreatedAt/ClosedAt from backend instead
  */
 const inquirySchema = z.object({
 	title: z.string().min(5, "Title must be at least 5 characters"),
@@ -28,8 +29,8 @@ const inquirySchema = z.object({
 	targetDepartments: z.array(z.any()), // Allow objects
 	targetPrograms: z.array(z.any()),
 	targetSemesters: z.array(z.any()),
-	startDate: z.string().min(1, "Start date is required"),
-	endDate: z.string().min(1, "End date is required"),
+	// startDate: z.string().min(1, "Start date is required"), // REMOVED: Not used in backend
+	// endDate: z.string().min(1, "End date is required"), // REMOVED: Not used in backend
 });
 
 /**
@@ -70,8 +71,8 @@ export function CreateInquiryDialog({
 			targetDepartments: [],
 			targetPrograms: [],
 			targetSemesters: [],
-			startDate: "",
-			endDate: "",
+			// startDate: "", // REMOVED: Not used in backend
+			// endDate: "", // REMOVED: Not used in backend
 		},
 	});
 
@@ -126,8 +127,8 @@ export function CreateInquiryDialog({
 						helperText={errors.description?.message}
 					/>
 
-					{/* Status */}
-					<TextField
+					{/* Status - DISABLED: Draft functionality removed, all inquiries created as Active */}
+					{/* <TextField
 						{...register("status")}
 						select
 						label="Status"
@@ -140,10 +141,10 @@ export function CreateInquiryDialog({
 								{option.label}
 							</MenuItem>
 						))}
-					</TextField>
+					</TextField> */}
 
-					{/* Date Range */}
-					<Box sx={{ display: "flex", gap: 2 }}>
+					{/* Date Range - REMOVED: Backend uses CreatedAt as start, ClosedAt as end */}
+					{/* <Box sx={{ display: "flex", gap: 2 }}>
 						<TextField
 							{...register("startDate")}
 							label="Start Date"
@@ -162,7 +163,7 @@ export function CreateInquiryDialog({
 							error={!!errors.endDate}
 							helperText={errors.endDate?.message}
 						/>
-					</Box>
+					</Box> */}
 
 					{/* Target Faculties */}
 					<Controller

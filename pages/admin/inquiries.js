@@ -7,7 +7,12 @@ import Alert from "@mui/material/Alert";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Pagination from "@mui/material/Pagination";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import AddIcon from "@mui/icons-material/Add";
+import SendIcon from "@mui/icons-material/Send";
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { toast } from "react-toastify";
 import { useQueryClient } from "react-query";
 import { RootLayout } from "modules/shared/layouts/root/root.layout";
@@ -22,6 +27,8 @@ import {
 	useGetInquiries,
 	useCreateInquiryMutation,
 	useDeleteInquiryMutation,
+	useSendInquiryMutation,
+	useCloseInquiryMutation,
 	getInquiriesQueryKey,
 } from "modules/inquiry";
 import { useGetAllFaculties } from "modules/faculty";
@@ -49,9 +56,15 @@ function AdminInquiriesPage() {
 
 	// Fetch metadata for create dialog
 	const { data: facultiesData } = useGetAllFaculties();
-	const { data: departmentsData } = useGetAllDepartments({ page: 1, pageSize: 100 });
+	const { data: departmentsData } = useGetAllDepartments({
+		page: 1,
+		pageSize: 100,
+	});
 	const { data: programsData } = useGetAllPrograms({ page: 1, pageSize: 100 });
-	const { data: semestersData } = useGetAllSemesters({ page: 1, pageSize: 100 });
+	const { data: semestersData } = useGetAllSemesters({
+		page: 1,
+		pageSize: 100,
+	});
 
 	// Create inquiry mutation
 	const createMutation = useCreateInquiryMutation({
@@ -77,12 +90,34 @@ function AdminInquiriesPage() {
 		},
 	});
 
-	const handleTabChange = (event, newValue) => {
+	// Send inquiry mutation
+	const sendMutation = useSendInquiryMutation({
+		onSuccess: response => {
+			toast.success(response.message || "Inquiry sent successfully!");
+			queryClient.invalidateQueries(getInquiriesQueryKey());
+		},
+		onError: error => {
+			toast.error(getApiErrorMessage(error, "Failed to send inquiry"));
+		},
+	});
+
+	// Close inquiry mutation
+	const closeMutation = useCloseInquiryMutation({
+		onSuccess: response => {
+			toast.success(response.message || "Inquiry closed successfully!");
+			queryClient.invalidateQueries(getInquiriesQueryKey());
+		},
+		onError: error => {
+			toast.error(getApiErrorMessage(error, "Failed to close inquiry"));
+		},
+	});
+
+	const handleTabChange = (_event, newValue) => {
 		setStatusFilter(newValue);
 		setPage(1); // Reset to first page when filter changes
 	};
 
-	const handlePageChange = (event, newPage) => {
+	const handlePageChange = (_event, newPage) => {
 		setPage(newPage);
 	};
 
@@ -103,6 +138,28 @@ function AdminInquiriesPage() {
 	const handleDelete = inquiryId => {
 		if (confirm("Are you sure you want to delete this inquiry?")) {
 			deleteMutation.mutate(inquiryId);
+		}
+	};
+
+	const handleSend = (e, inquiryId) => {
+		e.stopPropagation();
+		if (
+			confirm(
+				"Are you sure you want to send this inquiry? It will become visible to targeted students.",
+			)
+		) {
+			sendMutation.mutate(inquiryId);
+		}
+	};
+
+	const handleClose = (e, inquiryId) => {
+		e.stopPropagation();
+		if (
+			confirm(
+				"Are you sure you want to close this inquiry? No more responses will be accepted.",
+			)
+		) {
+			closeMutation.mutate(inquiryId);
 		}
 	};
 
@@ -146,8 +203,8 @@ function AdminInquiriesPage() {
 					<Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
 						<Tabs value={statusFilter} onChange={handleTabChange}>
 							<Tab label="All" value="" />
-							<Tab label="Sent" value={InquiryStatus.Sent} />
-							<Tab label="Draft" value={InquiryStatus.Draft} />
+							<Tab label="Active" value={InquiryStatus.Active} />
+							{/* <Tab label="Draft" value={InquiryStatus.Draft} /> */}
 							<Tab label="Closed" value={InquiryStatus.Closed} />
 						</Tabs>
 					</Box>
@@ -185,7 +242,7 @@ function AdminInquiriesPage() {
 										{data.pagination?.totalItems || 0}
 									</Typography>
 								</Box>
-								<Box>
+								{/* <Box>
 									<Typography variant="caption" color="text.secondary">
 										Total Responses
 									</Typography>
@@ -199,7 +256,7 @@ function AdminInquiriesPage() {
 											0,
 										)}
 									</Typography>
-								</Box>
+								</Box> */}
 							</Box>
 
 							{/* Inquiries List */}
@@ -212,22 +269,67 @@ function AdminInquiriesPage() {
 												showStatus={!statusFilter}
 												onClick={handleViewDetails}
 											/>
-											{/* Delete Button */}
+											{/* Action Buttons */}
 											<Box
 												sx={{
 													position: "absolute",
 													top: 16,
 													right: 16,
 													zIndex: 1,
+													display: "flex",
+													gap: 1,
 												}}
 											>
-												<DeleteIconButton
-													onClick={e => {
-														e.stopPropagation();
-														handleDelete(inquiry.id);
-													}}
-													loading={deleteMutation.isLoading}
-												/>
+												{/* Send Button - Only for Draft */}
+												{/* DISABLED: Draft functionality removed */}
+												{/* {inquiry.status?.toUpperCase() === InquiryStatus.Draft && (
+													<Tooltip title="Send Inquiry">
+														<IconButton
+															color="primary"
+															size="small"
+															onClick={e => handleSend(e, inquiry.id)}
+															disabled={sendMutation.isLoading}
+															sx={{ bgcolor: "background.paper" }}
+														>
+															<SendIcon />
+														</IconButton>
+													</Tooltip>
+												)} */}
+
+												{/* Close Button - Only for Active */}
+												{inquiry.status?.toUpperCase() ===
+													InquiryStatus.Active.toUpperCase() && (
+													<Tooltip title="Close Inquiry">
+														<IconButton
+															color="warning"
+															size="small"
+															onClick={e => handleClose(e, inquiry.id)}
+															disabled={closeMutation.isLoading}
+															sx={{ bgcolor: "background.paper" }}
+														>
+															<CloseIcon />
+														</IconButton>
+													</Tooltip>
+												)}
+
+												{/* Delete Button - Only for Draft */}
+												{/* DISABLED: Draft functionality removed */}
+												{/* {inquiry.status?.toUpperCase() === InquiryStatus.Draft && (
+													<Tooltip title="Delete Inquiry">
+														<IconButton
+															color="error"
+															size="small"
+															onClick={e => {
+																e.stopPropagation();
+																handleDelete(inquiry.id);
+															}}
+															disabled={deleteMutation.isLoading}
+															sx={{ bgcolor: "background.paper" }}
+														>
+															<DeleteIcon />
+														</IconButton>
+													</Tooltip>
+												)} */}
 											</Box>
 										</Box>
 									))}

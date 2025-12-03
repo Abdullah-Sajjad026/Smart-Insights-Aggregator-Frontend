@@ -27,7 +27,7 @@ export const getDashboardStatsQueryKey = () => ["dashboard-stats"];
 export const selectDashboardStatsQueryData = (response) => {
 	if (!response) return null;
 
-	const { byType = {}, byStatus = {}, bySentiment = {}, averageQualityScore = 0 } = response;
+	const { byType = {}, byStatus = {}, bySentiment = {}, bySeverity = {}, averageQualityScore = 0 } = response;
 
 	// Calculate totals
 	const totalInputs = Object.values(byType).reduce((a, b) => a + b, 0);
@@ -37,18 +37,24 @@ export const selectDashboardStatsQueryData = (response) => {
 		generalInputs: byType["General"] || 0,
 		inquiryLinkedInputs: byType["InquiryLinked"] || 0,
 
-		// Status counts
-		pendingInputs: (byStatus["Pending"] || 0) + (byStatus["Processing"] || 0),
+		// Status counts - Fixed to match backend response
+		pendingInputs: byStatus["Pending"] || 0,
 		reviewedInputs: byStatus["Reviewed"] || 0,
-		resolvedInputs: byStatus["Processed"] || 0,
+		resolvedInputs: byStatus["Resolved"] || 0,
+		archivedInputs: byStatus["Archived"] || 0,
 
 		// Sentiment counts
 		positiveCount: bySentiment["Positive"] || 0,
 		neutralCount: bySentiment["Neutral"] || 0,
 		negativeCount: bySentiment["Negative"] || 0,
 
-		// Average quality score
-		averageQualityScore
+		// Severity counts - Added from backend response
+		lowSeverity: bySeverity["Low"] || 0,
+		mediumSeverity: bySeverity["Medium"] || 0,
+		highSeverity: bySeverity["High"] || 0,
+
+		// Average quality score (convert to 0-10 scale)
+		averageQualityScore: averageQualityScore ? averageQualityScore * 10 : 0
 	};
 };
 
