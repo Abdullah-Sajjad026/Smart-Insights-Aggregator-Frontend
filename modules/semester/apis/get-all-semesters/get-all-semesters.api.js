@@ -7,9 +7,9 @@ export function getAllSemesters(params = {}) {
 	return apiClient.get("/semesters", { params });
 }
 
-export const getGetAllSemestersQueryKey = (params) => ["semesters", "all", params];
+export const getAllSemestersQueryKey = (params) => ["semesters", "all", params];
 export const selectGetAllSemestersQueryData = (response) => ({
-	data: response,
+	data: response || [],
 	pagination: {
 		totalItems: response?.length || 0,
 		pageNumber: 1,
@@ -21,7 +21,7 @@ export const selectGetAllSemestersQueryData = (response) => ({
 export function useGetAllSemesters(params = {}, queryProps = {}) {
 	return useQuery({
 		queryFn: () => getAllSemesters(params),
-		queryKey: getGetAllSemestersQueryKey(params),
+		queryKey: getAllSemestersQueryKey(params),
 		select: selectGetAllSemestersQueryData,
 		staleTime: SEMESTER_STALE_TIME,
 		...queryProps,

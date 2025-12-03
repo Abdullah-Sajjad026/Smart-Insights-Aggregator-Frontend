@@ -33,12 +33,12 @@ export function useGetAllTopics(params = {}, queryOptions = {}) {
 		queryKey: getAllTopicsQueryKey(params),
 		queryFn: () => getAllTopics(params),
 		select: (response) => ({
-			data: response.items,
+			data: response?.items || [],
 			pagination: {
-				totalItems: response.totalCount,
-				pageNumber: response.currentPage,
-				pageSize: response.pageSize,
-				totalPages: response.totalPages,
+				totalItems: response?.totalCount || 0,
+				pageNumber: response?.currentPage || 1,
+				pageSize: response?.pageSize || 20,
+				totalPages: response?.totalPages || 1,
 			},
 		}),
 		staleTime: TOPIC_STALE_TIME,

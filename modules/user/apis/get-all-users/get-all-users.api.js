@@ -46,12 +46,12 @@ export const getGetAllUsersQueryKey = (params) => ["users", "all", params];
  * @param {PaginatedResult<UserDto>} response
  */
 export const selectGetAllUsersQueryData = (response) => ({
-	data: response.items,
+	data: response?.items || [],
 	pagination: {
-		totalItems: response.totalCount,
-		pageNumber: response.pageNumber,
-		pageSize: response.pageSize,
-		totalPages: response.totalPages,
+		totalItems: response?.totalCount || 0,
+		pageNumber: response?.pageNumber || 1,
+		pageSize: response?.pageSize || 10,
+		totalPages: response?.totalPages || 1,
 	},
 });
 

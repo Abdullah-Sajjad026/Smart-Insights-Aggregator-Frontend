@@ -84,7 +84,7 @@ function ProgramFormDialog({ open, onClose, program = null }) {
 
 	const onSubmit = (data) => {
 		if (isEdit) {
-			updateMutation.mutate({ id: program.id, data });
+			updateMutation.mutate({ programId: program.id, data });
 		} else {
 			createMutation.mutate(data);
 		}

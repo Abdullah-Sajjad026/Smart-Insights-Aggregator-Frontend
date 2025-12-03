@@ -69,7 +69,7 @@ function TopicFormDialog({ open, onClose, topic = null }) {
 
 	const createMutation = useCreateTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Topic created successfully!");
+			toast.success(response?.message || "Topic created successfully!");
 			queryClient.invalidateQueries(getAllTopicsQueryKey());
 			reset();
 			onClose();
@@ -81,7 +81,7 @@ function TopicFormDialog({ open, onClose, topic = null }) {
 
 	const updateMutation = useUpdateTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Topic updated successfully!");
+			toast.success(response?.message || "Topic updated successfully!");
 			queryClient.invalidateQueries(getAllTopicsQueryKey());
 			reset();
 			onClose();
@@ -176,7 +176,7 @@ function AdminTopicsPage() {
 	// Archive topic mutation
 	const archiveMutation = useArchiveTopicMutation({
 		onSuccess: (response) => {
-			toast.success("Topic archived successfully!");
+			toast.success(response?.message || "Topic archived successfully!");
 			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
 		},
 		onError: (error) => {
@@ -187,7 +187,7 @@ function AdminTopicsPage() {
 	// Unarchive topic mutation
 	const unarchiveMutation = useUnarchiveTopicMutation({
 		onSuccess: (response) => {
-			toast.success("Topic unarchived successfully!");
+			toast.success(response?.message || "Topic unarchived successfully!");
 			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
 		},
 		onError: (error) => {

@@ -86,7 +86,7 @@ function SemesterFormDialog({ open, onClose, semester = null }) {
 
 	const onSubmit = data => {
 		if (isEdit) {
-			updateMutation.mutate({ id: semester.id, data });
+			updateMutation.mutate({ semesterId: semester.id, data });
 		} else {
 			createMutation.mutate(data);
 		}

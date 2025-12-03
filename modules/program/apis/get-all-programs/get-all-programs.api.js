@@ -15,9 +15,9 @@ export function getAllPrograms(params = {}) {
 	return apiClient.get("/programs", { params });
 }
 
-export const getGetAllProgramsQueryKey = (params) => ["programs", "all", params];
+export const getAllProgramsQueryKey = (params) => ["programs", "all", params];
 export const selectGetAllProgramsQueryData = (response) => ({
-	data: response,
+	data: response || [],
 	pagination: {
 		totalItems: response?.length || 0,
 		pageNumber: 1,
@@ -29,7 +29,7 @@ export const selectGetAllProgramsQueryData = (response) => ({
 export function useGetAllPrograms(params = {}, queryProps = {}) {
 	return useQuery({
 		queryFn: () => getAllPrograms(params),
-		queryKey: getGetAllProgramsQueryKey(params),
+		queryKey: getAllProgramsQueryKey(params),
 		select: selectGetAllProgramsQueryData,
 		staleTime: PROGRAM_STALE_TIME,
 		...queryProps,

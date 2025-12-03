@@ -15,9 +15,9 @@ export function getAllDepartments(params = {}) {
 	return apiClient.get("/departments", { params });
 }
 
-export const getGetAllDepartmentsQueryKey = (params) => ["departments", "all", params];
+export const getAllDepartmentsQueryKey = (params) => ["departments", "all", params];
 export const selectGetAllDepartmentsQueryData = (response) => ({
-	data: response,
+	data: response || [],
 	pagination: {
 		totalItems: response?.length || 0,
 		pageNumber: 1,
@@ -29,7 +29,7 @@ export const selectGetAllDepartmentsQueryData = (response) => ({
 export function useGetAllDepartments(params = {}, queryProps = {}) {
 	return useQuery({
 		queryFn: () => getAllDepartments(params),
-		queryKey: getGetAllDepartmentsQueryKey(params),
+		queryKey: getAllDepartmentsQueryKey(params),
 		select: selectGetAllDepartmentsQueryData,
 		staleTime: DEPARTMENT_STALE_TIME,
 		...queryProps,

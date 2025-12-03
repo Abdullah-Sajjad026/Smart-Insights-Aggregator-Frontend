@@ -84,7 +84,7 @@ function DepartmentFormDialog({ open, onClose, department = null }) {
 
 	const onSubmit = (data) => {
 		if (isEdit) {
-			updateMutation.mutate({ id: department.id, data });
+			updateMutation.mutate({ departmentId: department.id, data });
 		} else {
 			createMutation.mutate(data);
 		}
