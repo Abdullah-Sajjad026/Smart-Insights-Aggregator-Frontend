@@ -1,6 +1,7 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useMemo } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -86,6 +87,35 @@ export function CreateInquiryDialog({
 	const handleFormSubmit = data => {
 		onSubmit(data);
 	};
+
+	// Watch selected programs to filter semesters
+	const selectedPrograms = useWatch({ control, name: "targetPrograms" });
+
+	// Filter semesters based on selected programs
+	// If any MS program is selected, show only semesters 1-4
+	// Otherwise show all 8 semesters
+	const filteredSemesters = useMemo(() => {
+		if (!selectedPrograms || selectedPrograms.length === 0) {
+			return semesters; // No programs selected, show all semesters
+		}
+
+		// Check if any selected program has "MS" or "M.S" in its name
+		const hasMSProgram = selectedPrograms.some(program => {
+			const programName = program.name?.toUpperCase() || "";
+			return programName.includes("MS") || programName.includes("M.S");
+		});
+
+		if (hasMSProgram) {
+			// Filter to only show semesters 1-4 for MS programs
+			return semesters.filter(semester => {
+				const semesterValue = parseInt(semester.value);
+				return semesterValue >= 1 && semesterValue <= 4;
+			});
+		}
+
+		// For BS or other programs, show all 8 semesters
+		return semesters;
+	}, [selectedPrograms, semesters]);
 
 	return (
 		<Dialog
@@ -284,7 +314,7 @@ export function CreateInquiryDialog({
 							<Autocomplete
 								{...field}
 								multiple
-								options={semesters}
+								options={filteredSemesters}
 								getOptionLabel={option => option.value}
 								isOptionEqualToValue={(option, value) => option.id === value.id}
 								onChange={(_, value) => field.onChange(value)}
@@ -296,7 +326,12 @@ export function CreateInquiryDialog({
 										error={!!errors.targetSemesters}
 										helperText={
 											errors.targetSemesters?.message ||
-											"Leave empty to target all semesters"
+											(selectedPrograms?.some(p =>
+												p.name?.toUpperCase()?.includes("MS") ||
+												p.name?.toUpperCase()?.includes("M.S")
+											)
+												? "MS programs: Showing semesters 1-4 only"
+												: "Leave empty to target all semesters")
 										}
 									/>
 								)}

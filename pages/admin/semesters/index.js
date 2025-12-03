@@ -217,19 +217,20 @@ function AdminSemestersPage() {
 					>
 						<Box>
 							<Typography variant="h4" gutterBottom fontWeight={600}>
-								Semester Management
+								Academic Semesters
 							</Typography>
 							<Typography variant="body1" color="text.secondary">
-								Manage academic semesters
+								Our system supports 8 standard academic semesters (1-8)
 							</Typography>
 						</Box>
-						<Button
+						{/* Management features disabled - semesters are now static constants */}
+						{/* <Button
 							variant="contained"
 							startIcon={<AddIcon />}
 							onClick={handleCreateClick}
 						>
 							Add Semester
-						</Button>
+						</Button> */}
 					</Box>
 
 					{/* Loading State */}
@@ -274,7 +275,7 @@ function AdminSemestersPage() {
 											<TableHead>
 												<TableRow>
 													<TableCell>Semester</TableCell>
-													<TableCell align="right">Actions</TableCell>
+													{/* <TableCell align="right">Actions</TableCell> */}
 												</TableRow>
 											</TableHead>
 											<TableBody>
@@ -285,7 +286,7 @@ function AdminSemestersPage() {
 																{semester.value}
 															</Typography>
 														</TableCell>
-														<TableCell align="right">
+														{/* <TableCell align="right">
 															<IconButton
 																size="small"
 																color="primary"
@@ -301,7 +302,7 @@ function AdminSemestersPage() {
 															>
 																<DeleteIcon fontSize="small" />
 															</IconButton>
-														</TableCell>
+														</TableCell> */}
 													</TableRow>
 												))}
 											</TableBody>
