@@ -75,8 +75,8 @@ export function InputForm({
 			{/* Inquiry Details (if linked) */}
 			{inquiryDetails && (
 				<Box sx={{ mb: 3 }}>
-					<Typography variant="h6" gutterBottom>
-						{inquiryDetails.title}
+					<Typography variant="body1" gutterBottom>
+						{inquiryDetails.title}:
 					</Typography>
 					<Typography variant="body2" color="text.secondary">
 						{inquiryDetails.description}
@@ -105,7 +105,7 @@ export function InputForm({
 				fullWidth
 				error={!!errors.body}
 				helperText={errors.body?.message}
-				sx={{ mb: 1 }}
+				sx={{ mb: 1, fontSize: "1.1rem" }}
 			/>
 
 			{/* Character Count */}
@@ -123,8 +123,8 @@ export function InputForm({
 						characterCount < INPUT_MIN_LENGTH
 							? "error"
 							: characterCount > INPUT_MAX_LENGTH
-								? "error"
-								: "text.secondary"
+							? "error"
+							: "text.secondary"
 					}
 				>
 					{characterCount} / {INPUT_MAX_LENGTH} characters
@@ -147,7 +147,8 @@ export function InputForm({
 
 			{/* Anonymous Notice */}
 			<Alert severity="info" sx={{ mt: 2 }}>
-				Your feedback is anonymous. Your identity will not be shared with anyone.
+				Your feedback is anonymous. Your identity will not be shared with
+				anyone.
 			</Alert>
 		</Box>
 	);

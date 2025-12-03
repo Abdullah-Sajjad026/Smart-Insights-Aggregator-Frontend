@@ -98,56 +98,12 @@ function InquiryDetailPage() {
 							{/* Page Header */}
 							<Box sx={{ mb: 4 }}>
 								<Typography variant="h4" gutterBottom fontWeight={600}>
-									Inquiry Details
+									{inquiry.title}
 								</Typography>
-								<Typography variant="body1" color="text.secondary">
+								<Typography variant="body1" fontWeight={600}>
+									Description:{" "}
 									{inquiry.body || "No details provided for this inquiry."}
 								</Typography>
-							</Box>
-
-							{/* Inquiry Metadata */}
-							<Box
-								sx={{
-									mb: 4,
-									p: 2,
-									bgcolor: "grey.50",
-									borderRadius: 1,
-									display: "flex",
-									gap: 3,
-									flexWrap: "wrap",
-								}}
-							>
-								<Box>
-									<Typography variant="caption" color="text.secondary">
-										Status
-									</Typography>
-									<Typography variant="body2" fontWeight={600}>
-										{inquiry.status}
-									</Typography>
-								</Box>
-								{inquiry.closedAt && (
-									<Box>
-										<Typography variant="caption" color="text.secondary">
-											Closed Date
-										</Typography>
-										<Typography
-											variant="body2"
-											fontWeight={600}
-											color={isPastDeadline ? "error.main" : "inherit"}
-										>
-											{DateTime.fromISO(inquiry.closedAt).toFormat("MMM dd, yyyy")}
-											{isPastDeadline && " (Expired)"}
-										</Typography>
-									</Box>
-								)}
-								<Box>
-									<Typography variant="caption" color="text.secondary">
-										Total Responses
-									</Typography>
-									<Typography variant="body2" fontWeight={600}>
-										{inquiry.stats?.totalResponses || 0}
-									</Typography>
-								</Box>
 							</Box>
 
 							{/* Inactive/Expired Warning */}
@@ -171,8 +127,8 @@ function InquiryDetailPage() {
 										Thank you for your response!
 									</Typography>
 									<Typography variant="body2">
-										Your feedback has been received and will be processed. You can
-										view it in{" "}
+										Your feedback has been received and will be processed. You
+										can view it in{" "}
 										<Box
 											component="span"
 											sx={{
@@ -202,8 +158,8 @@ function InquiryDetailPage() {
 									<InputForm
 										inquiryId={inquiry.id}
 										inquiryDetails={{
-											title: "Response to Inquiry",
-											description: inquiry.body || "No details provided for this inquiry.",
+											title: "Respond to the Inquiry",
+											description: "",
 										}}
 										onSubmit={handleSubmit}
 										isLoading={submitInputMutation.isLoading}
@@ -212,7 +168,7 @@ function InquiryDetailPage() {
 												? getApiErrorMessage(
 														submitInputMutation.error,
 														"Failed to submit response",
-													)
+												  )
 												: null
 										}
 									/>

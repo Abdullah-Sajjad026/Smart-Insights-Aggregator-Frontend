@@ -120,6 +120,7 @@ const palette = {
 	background: {
 		paper: "#fff",
 		default: grey[100],
+		paperDark: "#082b2b",
 	},
 };
 

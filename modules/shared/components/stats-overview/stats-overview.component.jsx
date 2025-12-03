@@ -21,7 +21,7 @@ export function StatsOverview({ stats }) {
 	} = stats;
 
 	// Calculate percentages for sentiment
-	const getPercentage = (count) => {
+	const getPercentage = count => {
 		if (totalResponses === 0) return 0;
 		return Math.round((count / totalResponses) * 100);
 	};
@@ -31,7 +31,7 @@ export function StatsOverview({ stats }) {
 		severityBreakdown["Low"] || 0,
 		severityBreakdown["Medium"] || 0,
 		severityBreakdown["High"] || 0,
-		1 // Avoid division by zero
+		1, // Avoid division by zero
 	);
 
 	return (
@@ -48,7 +48,7 @@ export function StatsOverview({ stats }) {
 						justifyContent: "center",
 						alignItems: "center",
 						textAlign: "center",
-						bgcolor: "primary.main",
+						bgcolor: "background.paperDark",
 						color: "white",
 						border: "none",
 					}}
@@ -83,7 +83,7 @@ export function StatsOverview({ stats }) {
 						SENTIMENT DISTRIBUTION
 					</Typography>
 					<Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-						{["Positive", "Neutral", "Negative"].map((sentiment) => {
+						{["Positive", "Neutral", "Negative"].map(sentiment => {
 							const count = sentimentBreakdown[sentiment] || 0;
 							const percentage = getPercentage(count);
 							const color =
@@ -95,7 +95,13 @@ export function StatsOverview({ stats }) {
 
 							return (
 								<Box key={sentiment}>
-									<Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+									<Box
+										sx={{
+											display: "flex",
+											justifyContent: "space-between",
+											mb: 0.5,
+										}}
+									>
 										<Typography variant="caption" fontWeight={600}>
 											{sentiment}
 										</Typography>
@@ -118,18 +124,36 @@ export function StatsOverview({ stats }) {
 
 			{/* Severity Breakdown */}
 			<Grid item xs={12} md={4}>
-				<Paper variant="outlined" sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}>
+				<Paper
+					variant="outlined"
+					sx={{
+						p: 3,
+						height: "100%",
+						display: "flex",
+						flexDirection: "column",
+					}}
+				>
 					<Typography variant="subtitle2" color="text.secondary" gutterBottom>
 						SEVERITY BREAKDOWN
 					</Typography>
-					<Box sx={{ mt: 2, display: "flex", gap: 2, alignItems: "flex-end", height: 100, maxHeight: 100 }}>
-						{["Low", "Medium", "High"].map((severity) => {
+					<Box
+						sx={{
+							mt: 2,
+							display: "flex",
+							gap: 2,
+							alignItems: "flex-end",
+							height: 100,
+							maxHeight: 100,
+						}}
+					>
+						{["Low", "Medium", "High"].map(severity => {
 							const count = severityBreakdown[severity] || 0;
 							// Calculate height relative to max count (proportional bar chart)
 							// Max bar height is 80px to fit within 100px container
-							const heightPixels = maxSeverityCount > 0
-								? Math.round((count / maxSeverityCount) * 80)
-								: 0;
+							const heightPixels =
+								maxSeverityCount > 0
+									? Math.round((count / maxSeverityCount) * 80)
+									: 0;
 							const displayHeight = count > 0 ? Math.max(heightPixels, 16) : 8; // Min 16px if has data, 8px if zero
 
 							const color =
@@ -150,7 +174,11 @@ export function StatsOverview({ stats }) {
 										gap: 0.5,
 									}}
 								>
-									<Typography variant="body1" fontWeight={700} sx={{ fontSize: "1.25rem" }}>
+									<Typography
+										variant="body1"
+										fontWeight={700}
+										sx={{ fontSize: "1.25rem" }}
+									>
 										{count}
 									</Typography>
 									<Box
@@ -164,7 +192,12 @@ export function StatsOverview({ stats }) {
 											opacity: count > 0 ? 1 : 0.3,
 										}}
 									/>
-									<Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ mt: 0.5 }}>
+									<Typography
+										variant="caption"
+										color="text.secondary"
+										fontWeight={500}
+										sx={{ mt: 0.5 }}
+									>
 										{severity}
 									</Typography>
 								</Box>
