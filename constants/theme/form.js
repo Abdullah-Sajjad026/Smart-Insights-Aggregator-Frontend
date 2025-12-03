@@ -38,9 +38,9 @@ const baseInputProps = palette => ({
 	padding,
 	fontSize,
 	fontFamily,
-	border: borderDark,
+	// border: borderDark, // Removed to use notchedOutline
 	position: "relative",
-	boxShadow: inputBoxShadow,
+	// boxShadow: inputBoxShadow, // Removed to use default outlined style
 	backgroundColor: tailwindTheme.colors.white,
 
 	"&:not(.MuiAutocomplete-inputRoot):has(.MuiIconButton-root)": {
@@ -48,14 +48,15 @@ const baseInputProps = palette => ({
 		paddingBottom: tailwindTheme.padding[1],
 	},
 
-	"&:focus-within:not(.Mui-readOnly,.Mui-disabled)": {
-		boxShadow: "0 0 0 0.2rem var(--color-blue-100)",
-		borderColor: "var(--color-blue-500)",
-	},
+    // Removed custom focus styles to let MUI handle it or add specific notchedOutline overrides if needed
+	// "&:focus-within:not(.Mui-readOnly,.Mui-disabled)": {
+	// 	boxShadow: "0 0 0 0.2rem var(--color-blue-100)",
+	// 	borderColor: "var(--color-blue-500)",
+	// },
 
 	"&.Mui-error": {
-		borderColor: palette.error.main,
-		boxShadow: `0 0 0 0.2rem #FFD4D4`,
+		// borderColor: palette.error.main, // Handled by MUI
+		// boxShadow: `0 0 0 0.2rem #FFD4D4`,
 	},
 
 	"&.Mui-readOnly": {
@@ -134,9 +135,9 @@ const form = palette => {
 		},
 		MuiOutlinedInput: {
 			styleOverrides: {
-				notchedOutline: {
-					display: "none",
-				},
+				// notchedOutline: {
+				// 	display: "none",
+				// },
 
 				root: {
 					"&.MuiInputBase-root": {

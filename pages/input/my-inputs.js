@@ -47,7 +47,7 @@ function MyInputsPage() {
 								My Submissions
 							</Typography>
 							<Typography variant="body1" color="text.secondary">
-								View all your feedback submissions and AI analysis results
+								View all your feedback submissions
 							</Typography>
 						</Box>
 						<Button
