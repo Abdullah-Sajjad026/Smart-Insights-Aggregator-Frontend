@@ -9,6 +9,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import LightbulbIcon from "@mui/icons-material/Lightbulb";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { DateTime } from "luxon";
+import { Stack } from "@mui/material";
 
 /**
  * Premium card component for displaying AI Executive Summary
@@ -38,8 +39,7 @@ export function AiSummaryCard({
 			sx={{
 				p: 0,
 				overflow: "hidden",
-				border: "1px solid",
-				borderColor: "primary.100",
+				border: "0px ",
 				bgcolor: "background.paper",
 			}}
 		>
@@ -49,7 +49,7 @@ export function AiSummaryCard({
 					p: 2,
 					px: 3,
 					bgcolor: "primary.50",
-					borderBottom: "1px solid",
+					border: "2px solid",
 					borderColor: "primary.100",
 					display: "flex",
 					justifyContent: "space-between",
@@ -84,7 +84,7 @@ export function AiSummaryCard({
 			</Box>
 
 			{/* Content */}
-			<Box sx={{ p: 3 }}>
+			<Box sx={{ py: 3 }}>
 				{/* Main Summary */}
 				<Typography
 					variant="body1"
@@ -99,9 +99,55 @@ export function AiSummaryCard({
 					{summaryText}
 				</Typography>
 
+				{/* Key Takeaways */}
+				{summary.executiveSummaryData?.keyPoints && (
+					<Box sx={{ mb: 4, p: 2.5, borderRadius: 1, border: "1px dashed", borderColor: "info.200" }}>
+						<Typography
+							variant="subtitle2"
+							fontWeight={700}
+							color="info.900"
+							gutterBottom
+							sx={{ textTransform: "uppercase", letterSpacing: 1, mb: 1.5, display: "flex", alignItems: "center", gap: 1 }}
+						>
+							<LightbulbIcon fontSize="small" /> Key Takeaways
+						</Typography>
+						<Box component="ul" sx={{ m: 0, pl: 2.5, "& li": { mb: 1, color: "text.primary" } }}>
+							{summary.executiveSummaryData.keyPoints.split("\n").map((point, index) => {
+								const cleanPoint = point.replace(/^-\s*/, "").trim();
+								if (!cleanPoint) return null;
+								return (
+									<Typography component="li" variant="body2" key={index}>
+										{cleanPoint}
+									</Typography>
+								);
+							})}
+						</Box>
+					</Box>
+				)}
+
 				{/* Suggested Actions */}
 				{summary.suggestedPrioritizedActions?.length > 0 && (
 					<Box>
+<Stack direction="row" alignItems="center" gap="4" mb={2}>
+						<Box
+											sx={{
+												display: "flex",
+												alignItems: "flex-start",
+												pt: 0.5,
+											}}
+										>
+											<Box
+												sx={{
+													p: 1,
+													borderRadius: "50%",
+													bgcolor: "primary.50",
+													color: "primary.main",
+													display: "flex",
+												}}
+											>
+												<LightbulbIcon fontSize="small" />
+											</Box>
+										</Box>
 						<Typography
 							variant="subtitle2"
 							fontWeight={700}
@@ -111,7 +157,9 @@ export function AiSummaryCard({
 						>
 							Suggested Actions
 						</Typography>
-						<Grid container spacing={2}>
+</Stack>
+
+						<Grid container spacing={4} >
 							{summary.suggestedPrioritizedActions.map((action, index) => (
 								<Grid item xs={12} key={index}>
 									<Paper
@@ -133,25 +181,7 @@ export function AiSummaryCard({
 										}}
 									>
 										{/* Icon Column */}
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "flex-start",
-												pt: 0.5,
-											}}
-										>
-											<Box
-												sx={{
-													p: 1,
-													borderRadius: "50%",
-													bgcolor: "primary.50",
-													color: "primary.main",
-													display: "flex",
-												}}
-											>
-												<LightbulbIcon fontSize="small" />
-											</Box>
-										</Box>
+
 
 										{/* Content Column */}
 										<Box sx={{ flex: 1 }}>
@@ -223,7 +253,7 @@ export function AiSummaryCard({
 															p: 1.5,
 															bgcolor: "info.50",
 															borderRadius: 1,
-															borderLeft: "4px solid",
+															borderLeft: "2px solid",
 															borderColor: "info.main"
 														}}
 													>
@@ -242,7 +272,7 @@ export function AiSummaryCard({
 												{action.supportingReasoning}
 											</Typography>
 
-											<Box
+											{/* <Box
 												sx={{
 													display: "flex",
 													alignItems: "center",
@@ -268,12 +298,11 @@ export function AiSummaryCard({
 													</Typography>
 												</Box>
 
-												{/* Optional: Action Arrow */}
 												<ArrowForwardIcon
 													fontSize="small"
 													sx={{ color: "text.disabled", opacity: 0.5 }}
 												/>
-											</Box>
+											</Box> */}
 										</Box>
 									</Paper>
 								</Grid>

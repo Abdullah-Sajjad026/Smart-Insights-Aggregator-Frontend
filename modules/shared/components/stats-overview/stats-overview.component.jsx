@@ -69,7 +69,7 @@ export function StatsOverview({ stats }) {
 							}}
 						>
 							<Typography variant="caption" fontWeight={600}>
-								Avg Quality: {averageQuality.toFixed(1)}/10
+								Avg Quality: {averageQuality.toFixed(1) * 10}/10
 							</Typography>
 						</Box>
 					)}

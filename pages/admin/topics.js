@@ -276,7 +276,6 @@ function AdminTopicsPage() {
 											<TableHead>
 												<TableRow>
 													<TableCell>Topic Name</TableCell>
-													<TableCell>Description</TableCell>
 													<TableCell>Inputs Linked</TableCell>
 													<TableCell>Created</TableCell>
 													<TableCell align="right">Actions</TableCell>
@@ -299,11 +298,7 @@ function AdminTopicsPage() {
 																{topic.name}
 															</Typography>
 														</TableCell>
-														<TableCell>
-															<Typography variant="body2" color="text.secondary">
-																{topic.description || "-"}
-															</Typography>
-														</TableCell>
+
 														<TableCell>
 															<Typography variant="body2">
 																{topic.inputCount || 0}
