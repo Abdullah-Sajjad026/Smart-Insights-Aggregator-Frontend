@@ -52,7 +52,8 @@ import { ROLE_LABELS, roleOptions } from "constants/enums";
 
 // Validation schema for user form
 const createUserSchema = z.object({
-	fullName: z.string().min(2, "Full name must be at least 2 characters"),
+	firstName: z.string().min(2, "First name must be at least 2 characters"),
+	lastName: z.string().min(2, "Last name must be at least 2 characters"),
 	email: z.string().email("Invalid email address"),
 	role: z.nativeEnum(Role),
 	password: z.string().min(6, "Password must be at least 6 characters"),
@@ -62,7 +63,8 @@ const createUserSchema = z.object({
 });
 
 const updateUserSchema = z.object({
-	fullName: z.string().min(2, "Full name must be at least 2 characters"),
+	firstName: z.string().min(2, "First name must be at least 2 characters"),
+	lastName: z.string().min(2, "Last name must be at least 2 characters"),
 	email: z.string().email("Invalid email address"),
 	role: z.nativeEnum(Role),
 	password: z.string().optional().or(z.literal("")),
@@ -98,7 +100,8 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	} = useForm({
 		resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
 		defaultValues: {
-			fullName: user?.fullName || "",
+			firstName: user?.firstName || "",
+			lastName: user?.lastName || "",
 			email: user?.email || "",
 			role: user?.role || Role.Student,
 			password: "",
@@ -172,15 +175,29 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 				<DialogContent>
 					<Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
 						<Controller
-							name="fullName"
+							name="firstName"
 							control={control}
 							render={({ field }) => (
 								<TextField
 									{...field}
-									label="Full Name"
+									label="First Name"
 									fullWidth
-									error={!!errors.fullName}
-									helperText={errors.fullName?.message}
+									error={!!errors.firstName}
+									helperText={errors.firstName?.message}
+								/>
+							)}
+						/>
+
+						<Controller
+							name="lastName"
+							control={control}
+							render={({ field }) => (
+								<TextField
+									{...field}
+									label="Last Name"
+									fullWidth
+									error={!!errors.lastName}
+									helperText={errors.lastName?.message}
 								/>
 							)}
 						/>
@@ -360,15 +377,7 @@ function AdminUsersPage() {
 	});
 
 	// Delete user mutation
-	const deleteMutation = useDeleteUserMutation({
-		onSuccess: response => {
-			toast.success(response.message || "User deleted successfully!");
-			queryClient.invalidateQueries(getAllUsersQueryKey());
-		},
-		onError: error => {
-			toast.error(getApiErrorMessage(error, "Failed to delete user"));
-		},
-	});
+	const deleteMutation = useDeleteUserMutation({});
 
 	const handleTabChange = (event, newValue) => {
 		setRoleFilter(newValue);
