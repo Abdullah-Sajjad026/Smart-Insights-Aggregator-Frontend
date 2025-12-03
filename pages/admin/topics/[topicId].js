@@ -138,7 +138,7 @@ function TopicDetailPage() {
 							<Typography variant="h3" fontWeight={800} color="text.primary">
 								{topic.name}
 							</Typography>
-							{topic.department && (
+							{/* {topic.department && (
 								<Chip
 									label={topic.department}
 									color="primary"
@@ -146,7 +146,7 @@ function TopicDetailPage() {
 									size="medium"
 									sx={{ fontWeight: 600 }}
 								/>
-							)}
+							)} */}
 						</Box>
 						<Typography variant="body1" color="text.secondary">
 							Topic created on {DateTime.fromISO(topic.createdAt).toFormat("MMMM dd, yyyy")}
@@ -165,6 +165,11 @@ function TopicDetailPage() {
 
 						{/* Tab 1: Overview */}
 						<TabPanel value={activeTab} index={0}>
+							<Box
+								sx={{
+									px: 3,
+								}}
+							>
 							{/* AI Summary Section */}
 							{topic.aiSummary ? (
 								<AiSummaryCard
@@ -188,10 +193,16 @@ function TopicDetailPage() {
 									</Button>
 								</Box>
 							)}
+							</Box>
 						</TabPanel>
 
 						{/* Tab 2: Inputs */}
 						<TabPanel value={activeTab} index={1}>
+							<Box
+								sx={{
+									px: 3,
+								}}
+							>
 							{topic.inputs && topic.inputs.length > 0 ? (
 								<Grid container spacing={2}>
 									{topic.inputs.map(input => (
@@ -207,6 +218,7 @@ function TopicDetailPage() {
 							) : (
 								<Alert severity="info">No responses linked to this topic yet.</Alert>
 							)}
+							</Box>
 						</TabPanel>
 					</Paper>
 				</Box>

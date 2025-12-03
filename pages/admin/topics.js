@@ -312,13 +312,13 @@ function AdminTopicsPage() {
 															</Typography>
 														</TableCell>
 														<TableCell align="right">
-															<IconButton
+															{/* <IconButton
 																size="small"
 																color="primary"
 																onClick={() => handleEditClick(topic)}
 															>
 																<EditIcon fontSize="small" />
-															</IconButton>
+															</IconButton> */}
 															<IconButton
 																size="small"
 																color="error"
