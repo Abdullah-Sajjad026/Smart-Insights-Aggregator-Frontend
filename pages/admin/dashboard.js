@@ -13,14 +13,22 @@ import { useGetTopicStats } from "modules/topic/apis";
 import { withAdmin } from "modules/user";
 import { Sentiment } from "types/api";
 
-import { StatCardSkeleton, ChartCardSkeleton } from "./components/DashboardSkeletons";
+import {
+	StatCardSkeleton,
+	ChartCardSkeleton,
+} from "./components/DashboardSkeletons";
 
 function AdminDashboardPage() {
 	const router = useRouter();
 
 	// Fetch all stats
-	const { data: inputStats, isLoading: inputLoading, isError: inputError } = useGetDashboardStats();
-	const { data: inquiryStats, isLoading: inquiryLoading } = useGetInquiryStats();
+	const {
+		data: inputStats,
+		isLoading: inputLoading,
+		isError: inputError,
+	} = useGetDashboardStats();
+	const { data: inquiryStats, isLoading: inquiryLoading } =
+		useGetInquiryStats();
 	const { data: userStats, isLoading: userLoading } = useGetUserStats();
 	const { data: topicStats, isLoading: topicLoading } = useGetTopicStats();
 
@@ -55,139 +63,194 @@ function AdminDashboardPage() {
 					{/* Stats Cards Row 1 */}
 					<Grid container spacing={3} sx={{ mb: 4 }}>
 						{/* Total Inputs */}
-						<Grid item xs={12} sm={6} md={3}>
+						<Grid item xs={12} sm={6} md={4}>
 							{inputLoading ? (
 								<StatCardSkeleton />
 							) : (
 								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
-									<Typography variant="caption" color="text.secondary">
-										Total Feedback
+									<Typography
+										variant="caption"
+										color="text.secondary"
+										fontWeight={600}
+									>
+										TOTAL FEEDBACK
 									</Typography>
-									<Typography variant="h4" fontWeight={700} color="primary.main">
+									<Typography
+										variant="h3"
+										fontWeight={700}
+										color="primary.main"
+									>
 										{inputStats?.totalInputs || 0}
 									</Typography>
-									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-										{inputStats?.generalInputs || 0} general, {inputStats?.inquiryLinkedInputs || 0} responses
+									<Typography
+										variant="caption"
+										color="text.secondary"
+										sx={{ mt: 1, display: "block" }}
+									>
+										{inputStats?.generalInputs || 0} general,{" "}
+										{inputStats?.inquiryLinkedInputs || 0} responses
 									</Typography>
 								</Paper>
 							)}
 						</Grid>
 
 						{/* Total Inquiries */}
-						<Grid item xs={12} sm={6} md={3}>
+						<Grid item xs={12} sm={6} md={4}>
 							{inquiryLoading ? (
 								<StatCardSkeleton />
 							) : (
 								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
-									<Typography variant="caption" color="text.secondary">
-										Total Inquiries
+									<Typography
+										variant="caption"
+										color="text.secondary"
+										fontWeight={600}
+									>
+										ACTIVE INQUIRIES
 									</Typography>
-									<Typography variant="h4" fontWeight={700}>
-										{inquiryStats?.totalInquiries || 0}
+									<Typography
+										variant="h3"
+										fontWeight={700}
+										color="secondary.main"
+									>
+										{inquiryStats?.activeInquiries || 0}
 									</Typography>
-									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-										{inquiryStats?.sentInquiries || 0} sent, {inquiryStats?.draftInquiries || 0} draft
-									</Typography>
-								</Paper>
-							)}
-						</Grid>
-
-						{/* Total Users */}
-						<Grid item xs={12} sm={6} md={3}>
-							{userLoading ? (
-								<StatCardSkeleton />
-							) : (
-								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
-									<Typography variant="caption" color="text.secondary">
-										Total Users
-									</Typography>
-									<Typography variant="h4" fontWeight={700} color="success.main">
-										{userStats?.totalUsers || 0}
-									</Typography>
-									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-										{userStats?.totalAdmins || 0} admins, {userStats?.totalStudents || 0} students
+									<Typography
+										variant="caption"
+										color="text.secondary"
+										sx={{ mt: 1, display: "block" }}
+									>
+										{inquiryStats?.totalInquiries || 0} total created
 									</Typography>
 								</Paper>
 							)}
 						</Grid>
 
-						{/* Total Topics */}
-						<Grid item xs={12} sm={6} md={3}>
-							{topicLoading ? (
+						{/* Avg Quality Score */}
+						<Grid item xs={12} sm={6} md={4}>
+							{inputLoading ? (
 								<StatCardSkeleton />
 							) : (
-								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
-									<Typography variant="caption" color="text.secondary">
-										Active Topics
+								<Paper
+									elevation={2}
+									sx={{ p: 3, height: "100%", bgcolor: "success.light" }}
+								>
+									<Typography
+										variant="caption"
+										color="success.dark"
+										fontWeight={600}
+									>
+										AVG QUALITY SCORE
 									</Typography>
-									<Typography variant="h4" fontWeight={700} color="primary.main">
-										{topicStats?.activeTopics || 0}
+									<Typography
+										variant="h3"
+										fontWeight={700}
+										color="success.dark"
+									>
+										{inputStats?.averageQualityScore?.toFixed(1) || "N/A"}
+										<Typography
+											component="span"
+											variant="h5"
+											color="success.dark"
+										>
+											/10
+										</Typography>
 									</Typography>
-									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-										{topicStats?.totalInputsLinked || 0} inputs linked
+									<Typography
+										variant="caption"
+										color="success.dark"
+										sx={{ mt: 1, display: "block" }}
+									>
+										Based on AI analysis
 									</Typography>
 								</Paper>
 							)}
 						</Grid>
 					</Grid>
 
-					{/* Stats Cards Row 2 - Input Status */}
+					{/* Stats Cards Row 2 - Severity & Quality */}
 					<Grid container spacing={3} sx={{ mb: 4 }}>
-						<Grid item xs={12} sm={6} md={3}>
+						<Grid item xs={12} sm={6} md={4}>
 							{inputLoading ? (
 								<StatCardSkeleton />
 							) : (
-								<Paper elevation={2} sx={{ p: 3, bgcolor: "warning.light", height: "100%" }}>
-									<Typography variant="caption" color="warning.dark">
-										Pending Review
+								<Paper
+									elevation={2}
+									sx={{ p: 3, bgcolor: "error.light", height: "100%" }}
+								>
+									<Typography variant="caption" color="white" fontWeight={600}>
+										HIGH SEVERITY
 									</Typography>
-									<Typography variant="h4" fontWeight={700} color="warning.dark">
-										{inputStats?.pendingInputs || 0}
+									<Typography variant="h3" fontWeight={700} color="white">
+										{inputStats?.highSeverity || 0}
+									</Typography>
+									<Typography
+										variant="caption"
+										color="white"
+										sx={{ mt: 1, display: "block" }}
+									>
+										Requires immediate attention
 									</Typography>
 								</Paper>
 							)}
 						</Grid>
 
-						<Grid item xs={12} sm={6} md={3}>
+						<Grid item xs={12} sm={6} md={4}>
 							{inputLoading ? (
 								<StatCardSkeleton />
 							) : (
-								<Paper elevation={2} sx={{ p: 3, bgcolor: "info.light", height: "100%" }}>
-									<Typography variant="caption" color="info.dark">
-										Under Review
+								<Paper
+									elevation={2}
+									sx={{ p: 3, bgcolor: "warning.light", height: "100%" }}
+								>
+									<Typography
+										variant="caption"
+										color="warning.dark"
+										fontWeight={600}
+									>
+										MEDIUM SEVERITY
 									</Typography>
-									<Typography variant="h4" fontWeight={700} color="info.dark">
-										{inputStats?.reviewedInputs || 0}
+									<Typography
+										variant="h3"
+										fontWeight={700}
+										color="warning.dark"
+									>
+										{inputStats?.mediumSeverity || 0}
+									</Typography>
+									<Typography
+										variant="caption"
+										color="warning.dark"
+										sx={{ mt: 1, display: "block" }}
+									>
+										Should be addressed soon
 									</Typography>
 								</Paper>
 							)}
 						</Grid>
 
-						<Grid item xs={12} sm={6} md={3}>
+						<Grid item xs={12} sm={6} md={4}>
 							{inputLoading ? (
 								<StatCardSkeleton />
 							) : (
-								<Paper elevation={2} sx={{ p: 3, bgcolor: "success.light", height: "100%" }}>
-									<Typography variant="caption" color="success.dark">
-										Resolved
+								<Paper
+									elevation={2}
+									sx={{ p: 3, bgcolor: "info.light", height: "100%" }}
+								>
+									<Typography
+										variant="caption"
+										color="info.dark"
+										fontWeight={600}
+									>
+										LOW SEVERITY
 									</Typography>
-									<Typography variant="h4" fontWeight={700} color="success.dark">
-										{inputStats?.resolvedInputs || 0}
+									<Typography variant="h3" fontWeight={700} color="info.dark">
+										{inputStats?.lowSeverity || 0}
 									</Typography>
-								</Paper>
-							)}
-						</Grid>
-
-						<Grid item xs={12} sm={6} md={3}>
-							{inputLoading ? (
-								<StatCardSkeleton />
-							) : (
-								<Paper elevation={2} sx={{ p: 3, height: "100%" }}>
-									<Typography variant="caption" color="text.secondary">
-										Avg Quality Score
-									</Typography>
-									<Typography variant="h4" fontWeight={700} color="primary.main">
-										{inputStats?.averageQualityScore?.toFixed(1) || "N/A"}
+									<Typography
+										variant="caption"
+										color="info.dark"
+										sx={{ mt: 1, display: "block" }}
+									>
+										General feedback & suggestions
 									</Typography>
 								</Paper>
 							)}
@@ -213,7 +276,9 @@ function AdminDashboardPage() {
 												mb: 2,
 											}}
 										>
-											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+											<Box
+												sx={{ display: "flex", alignItems: "center", gap: 1 }}
+											>
 												<Box
 													sx={{
 														width: 16,
@@ -237,7 +302,9 @@ function AdminDashboardPage() {
 												mb: 2,
 											}}
 										>
-											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+											<Box
+												sx={{ display: "flex", alignItems: "center", gap: 1 }}
+											>
 												<Box
 													sx={{
 														width: 16,
@@ -261,7 +328,9 @@ function AdminDashboardPage() {
 												mb: 2,
 											}}
 										>
-											<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+											<Box
+												sx={{ display: "flex", alignItems: "center", gap: 1 }}
+											>
 												<Box
 													sx={{
 														width: 16,
@@ -287,7 +356,14 @@ function AdminDashboardPage() {
 								<Typography variant="h6" gutterBottom fontWeight={600}>
 									Quick Actions
 								</Typography>
-								<Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+								<Box
+									sx={{
+										mt: 2,
+										display: "flex",
+										flexDirection: "column",
+										gap: 2,
+									}}
+								>
 									<Box
 										onClick={() => router.push("/admin/inquiries")}
 										sx={{
