@@ -61,30 +61,30 @@ function SemesterFormDialog({ open, onClose, semester = null }) {
 	});
 
 	const createMutation = useCreateSemesterMutation({
-		onSuccess: (response) => {
+		onSuccess: response => {
 			toast.success(response.message || "Semester created successfully!");
 			queryClient.invalidateQueries(getAllSemestersQueryKey());
 			reset();
 			onClose();
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(getApiErrorMessage(error, "Failed to create semester"));
 		},
 	});
 
 	const updateMutation = useUpdateSemesterMutation({
-		onSuccess: (response) => {
+		onSuccess: response => {
 			toast.success(response.message || "Semester updated successfully!");
 			queryClient.invalidateQueries(getAllSemestersQueryKey());
 			reset();
 			onClose();
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(getApiErrorMessage(error, "Failed to update semester"));
 		},
 	});
 
-	const onSubmit = (data) => {
+	const onSubmit = data => {
 		if (isEdit) {
 			updateMutation.mutate({ id: semester.id, data });
 		} else {
@@ -101,7 +101,9 @@ function SemesterFormDialog({ open, onClose, semester = null }) {
 
 	return (
 		<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{isEdit ? "Edit Semester" : "Create New Semester"}</DialogTitle>
+			<DialogTitle>
+				{isEdit ? "Edit Semester" : "Create New Semester"}
+			</DialogTitle>
 			<form onSubmit={handleSubmit(onSubmit)}>
 				<DialogContent>
 					<Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
@@ -162,11 +164,11 @@ function AdminSemestersPage() {
 
 	// Delete semester mutation
 	const deleteMutation = useDeleteSemesterMutation({
-		onSuccess: (response) => {
+		onSuccess: response => {
 			toast.success(response.message || "Semester deleted successfully!");
 			queryClient.invalidateQueries(getAllSemestersQueryKey());
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(getApiErrorMessage(error, "Failed to delete semester"));
 		},
 	});
@@ -180,13 +182,15 @@ function AdminSemestersPage() {
 		setDialogOpen(true);
 	};
 
-	const handleEditClick = (semester) => {
+	const handleEditClick = semester => {
 		setSelectedSemester(semester);
 		setDialogOpen(true);
 	};
 
-	const handleDeleteClick = (semester) => {
-		if (confirm(`Are you sure you want to delete semester "${semester.name}"?`)) {
+	const handleDeleteClick = semester => {
+		if (
+			confirm(`Are you sure you want to delete semester "${semester.name}"?`)
+		) {
 			deleteMutation.mutate(semester.id);
 		}
 	};
@@ -269,19 +273,13 @@ function AdminSemestersPage() {
 										<Table>
 											<TableHead>
 												<TableRow>
-													<TableCell>Semester Name</TableCell>
-													<TableCell>Value</TableCell>
+													<TableCell>Semester</TableCell>
 													<TableCell align="right">Actions</TableCell>
 												</TableRow>
 											</TableHead>
 											<TableBody>
-												{data.data.map((semester) => (
+												{data.data.map(semester => (
 													<TableRow key={semester.id} hover>
-														<TableCell>
-															<Typography variant="body2" fontWeight={600}>
-																{semester.name}
-															</Typography>
-														</TableCell>
 														<TableCell>
 															<Typography variant="body2">
 																{semester.value}

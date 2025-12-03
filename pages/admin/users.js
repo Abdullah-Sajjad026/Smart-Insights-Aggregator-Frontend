@@ -51,14 +51,21 @@ import { Role } from "types/api";
 import { ROLE_LABELS, roleOptions } from "constants/enums";
 
 // Validation schema for user form
-const userSchema = z.object({
+const createUserSchema = z.object({
 	fullName: z.string().min(2, "Full name must be at least 2 characters"),
 	email: z.string().email("Invalid email address"),
 	role: z.nativeEnum(Role),
-	password: z
-		.string()
-		.optional()
-		.or(z.literal("")),
+	password: z.string().min(6, "Password must be at least 6 characters"),
+	departmentId: z.string().optional().nullable(),
+	programId: z.string().optional().nullable(),
+	semesterId: z.string().optional().nullable(),
+});
+
+const updateUserSchema = z.object({
+	fullName: z.string().min(2, "Full name must be at least 2 characters"),
+	email: z.string().email("Invalid email address"),
+	role: z.nativeEnum(Role),
+	password: z.string().optional().or(z.literal("")),
 	departmentId: z.string().optional().nullable(),
 	programId: z.string().optional().nullable(),
 	semesterId: z.string().optional().nullable(),
@@ -89,7 +96,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 		reset,
 		formState: { errors },
 	} = useForm({
-		resolver: zodResolver(userSchema),
+		resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
 		defaultValues: {
 			fullName: user?.fullName || "",
 			email: user?.email || "",
@@ -105,30 +112,30 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	const isStudent = selectedRole === Role.Student;
 
 	const createMutation = useCreateUserMutation({
-		onSuccess: (response) => {
+		onSuccess: response => {
 			toast.success(response.message || "User created successfully!");
 			queryClient.invalidateQueries(getAllUsersQueryKey());
 			reset();
 			onClose();
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(getApiErrorMessage(error, "Failed to create user"));
 		},
 	});
 
 	const updateMutation = useUpdateUserMutation({
-		onSuccess: (response) => {
+		onSuccess: response => {
 			toast.success(response.message || "User updated successfully!");
 			queryClient.invalidateQueries(getAllUsersQueryKey());
 			reset();
 			onClose();
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(getApiErrorMessage(error, "Failed to update user"));
 		},
 	});
 
-	const onSubmit = (data) => {
+	const onSubmit = data => {
 		// Clean up data based on role
 		const submissionData = { ...data };
 		if (submissionData.role !== Role.Student) {
@@ -206,7 +213,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 									error={!!errors.role}
 									helperText={errors.role?.message}
 								>
-									{roleOptions.map((option) => (
+									{roleOptions.map(option => (
 										<MenuItem key={option.value} value={option.value}>
 											{option.label}
 										</MenuItem>
@@ -232,7 +239,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 											<MenuItem value="">
 												<em>None</em>
 											</MenuItem>
-											{departments.map((dept) => (
+											{departments.map(dept => (
 												<MenuItem key={dept.id} value={dept.id}>
 													{dept.name}
 												</MenuItem>
@@ -256,7 +263,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 											<MenuItem value="">
 												<em>None</em>
 											</MenuItem>
-											{programs.map((prog) => (
+											{programs.map(prog => (
 												<MenuItem key={prog.id} value={prog.id}>
 													{prog.name}
 												</MenuItem>
@@ -280,9 +287,9 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 											<MenuItem value="">
 												<em>None</em>
 											</MenuItem>
-											{semesters.map((sem) => (
+											{semesters.map(sem => (
 												<MenuItem key={sem.id} value={sem.id}>
-													{sem.name}
+													{sem.value}
 												</MenuItem>
 											))}
 										</TextField>
@@ -291,33 +298,28 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 							</>
 						)}
 
-						{!isStudent && (
-							<Controller
-								name="password"
-								control={control}
-								render={({ field }) => (
-									<TextField
-										{...field}
-										label={
-											isEdit
-												? "New Password (leave blank to keep current)"
-												: "Password"
-										}
-										type="password"
-										fullWidth
-										error={!!errors.password}
-										helperText={errors.password?.message}
-										required={!isEdit}
-									/>
-								)}
-							/>
-						)}
-
-						{isStudent && !isEdit && (
-							<Alert severity="info">
-								An invite will be sent to the student to set their password.
-							</Alert>
-						)}
+						<Controller
+							name="password"
+							control={control}
+							render={({ field }) => (
+								<TextField
+									{...field}
+									label={
+										isEdit
+											? "New Password (leave blank to keep current)"
+											: "Password"
+									}
+									type="password"
+									fullWidth
+									error={!!errors.password}
+									helperText={
+										errors.password?.message ||
+										(isEdit ? "Leave blank to keep current password" : "")
+									}
+									required={!isEdit}
+								/>
+							)}
+						/>
 					</Box>
 				</DialogContent>
 				<DialogActions>
@@ -359,11 +361,11 @@ function AdminUsersPage() {
 
 	// Delete user mutation
 	const deleteMutation = useDeleteUserMutation({
-		onSuccess: (response) => {
+		onSuccess: response => {
 			toast.success(response.message || "User deleted successfully!");
 			queryClient.invalidateQueries(getAllUsersQueryKey());
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(getApiErrorMessage(error, "Failed to delete user"));
 		},
 	});
@@ -382,12 +384,12 @@ function AdminUsersPage() {
 		setDialogOpen(true);
 	};
 
-	const handleEditClick = (user) => {
+	const handleEditClick = user => {
 		setSelectedUser(user);
 		setDialogOpen(true);
 	};
 
-	const handleDeleteClick = (user) => {
+	const handleDeleteClick = user => {
 		if (confirm(`Are you sure you want to delete user "${user.fullName}"?`)) {
 			deleteMutation.mutate(user.id);
 		}
@@ -398,7 +400,7 @@ function AdminUsersPage() {
 		setDialogOpen(false);
 	};
 
-	const getRoleColor = (role) => {
+	const getRoleColor = role => {
 		return role === Role.Admin ? "error" : "primary";
 	};
 
@@ -501,7 +503,7 @@ function AdminUsersPage() {
 												</TableRow>
 											</TableHead>
 											<TableBody>
-												{data.data.map((user) => (
+												{data.data.map(user => (
 													<TableRow key={user.id} hover>
 														<TableCell>
 															<Typography variant="body2" fontWeight={600}>
@@ -509,7 +511,10 @@ function AdminUsersPage() {
 															</Typography>
 														</TableCell>
 														<TableCell>
-															<Typography variant="body2" color="text.secondary">
+															<Typography
+																variant="body2"
+																color="text.secondary"
+															>
 																{user.email}
 															</Typography>
 														</TableCell>
@@ -521,10 +526,13 @@ function AdminUsersPage() {
 															/>
 														</TableCell>
 														<TableCell>
-															<Typography variant="caption" color="text.secondary">
+															<Typography
+																variant="caption"
+																color="text.secondary"
+															>
 																{user.createdAt
 																	? DateTime.fromISO(user.createdAt).toFormat(
-																			"MMM dd, yyyy"
+																			"MMM dd, yyyy",
 																	  )
 																	: "N/A"}
 															</Typography>
@@ -590,7 +598,9 @@ function AdminUsersPage() {
 										sx={{ mb: 3 }}
 									>
 										{roleFilter
-											? `No ${ROLE_LABELS[roleFilter]?.toLowerCase()} users found`
+											? `No ${ROLE_LABELS[
+													roleFilter
+											  ]?.toLowerCase()} users found`
 											: "Get started by creating your first user"}
 									</Typography>
 									<Button

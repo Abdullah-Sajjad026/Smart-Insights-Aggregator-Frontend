@@ -154,13 +154,13 @@ export function useSidebarItems({ user = {} }) {
 	 * Sidebar items for the secondary sidebar navigation
 	 */
 	const secondarySidebarItems = [
-		{
-			label: "Help",
-			icon: HeadphonesIcon,
-			buttonProps: {
-				// onClick: openHelpDialog,
-			},
-		},
+		// {
+		// 	label: "Help",
+		// 	icon: HeadphonesIcon,
+		// 	buttonProps: {
+		// 		// onClick: openHelpDialog,
+		// 	},
+		// },
 		{
 			label: "Logout",
 			icon: LogoutOutlined,
