@@ -176,7 +176,7 @@ function AdminTopicsPage() {
 	// Archive topic mutation
 	const archiveMutation = useArchiveTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Topic archived successfully!");
+			toast.success("Topic archived successfully!");
 			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
 		},
 		onError: (error) => {
@@ -187,7 +187,7 @@ function AdminTopicsPage() {
 	// Unarchive topic mutation
 	const unarchiveMutation = useUnarchiveTopicMutation({
 		onSuccess: (response) => {
-			toast.success(response.message || "Topic unarchived successfully!");
+			toast.success("Topic unarchived successfully!");
 			queryClient.invalidateQueries(getAllTopicsQueryKey({ page, pageSize, includeArchived: showArchived }));
 		},
 		onError: (error) => {
