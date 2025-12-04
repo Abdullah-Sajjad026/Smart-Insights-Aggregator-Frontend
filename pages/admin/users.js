@@ -40,7 +40,7 @@ import {
 	useInviteUserMutation,
 	useUpdateUserMutation,
 	useDeleteUserMutation,
-	getAllUsersQueryKey,
+	getGetAllUsersQueryKey,
 	ImportUsersDialog,
 } from "modules/user";
 import { useGetAllDepartments } from "modules/department";
@@ -118,7 +118,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 		onSuccess: response => {
 			toast.success(response.message || "User invitation sent successfully!");
 			queryClient.invalidateQueries({
-				queryKey: getAllUsersQueryKey(),
+				queryKey: getGetAllUsersQueryKey(),
 				exact: false,
 			});
 			reset();

@@ -46,6 +46,7 @@ export function InputCard({
 					: {},
 			}}
 			onClick={onClick}
+			variant="outlined"
 		>
 			<CardContent>
 				{/* Header: Type Badge + Date */}

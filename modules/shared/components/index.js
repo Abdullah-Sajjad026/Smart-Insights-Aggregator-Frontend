@@ -32,3 +32,4 @@ export * from "./severity-badge";
 export * from "./importance-level-badge";
 export * from "./ai-summary-card";
 export * from "./stats-overview";
+export * from "./severity-breakdown-chart/severity-breakdown-chart.component";

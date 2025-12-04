@@ -5,3 +5,4 @@ export const userTypeAdmin = "Admin";
 export const userTypeStudent = "Student";
 export const userTypeStaff = "Staff";
 export const userTypeAnonymous = "";
+export const userTypeBrand = "Brand";

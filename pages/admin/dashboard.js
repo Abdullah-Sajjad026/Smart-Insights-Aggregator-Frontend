@@ -16,7 +16,7 @@ import { Sentiment } from "types/api";
 import {
 	StatCardSkeleton,
 	ChartCardSkeleton,
-} from "./components/DashboardSkeletons";
+} from "modules/shared/components/dashboard-skeletons";
 
 function AdminDashboardPage() {
 	const router = useRouter();
