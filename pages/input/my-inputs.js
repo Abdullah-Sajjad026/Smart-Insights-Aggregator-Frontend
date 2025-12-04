@@ -120,6 +120,7 @@ function MyInputsPage() {
 												input={input}
 												showAIAnalysis={true}
 												showInquiryLink={true}
+												onClick={() => router.push(`/input/${input.id}`)}
 											/>
 										))}
 									</Box>

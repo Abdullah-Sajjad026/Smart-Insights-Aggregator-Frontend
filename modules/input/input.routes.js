@@ -13,6 +13,10 @@ export function getInputRoutes(path = "input") {
 		myInputs: {
 			path: `/${path}/my-inputs`,
 		},
+		inputDetail: {
+			path: `/${path}/:inputId`,
+			getPath: inputId => `/${path}/${inputId}`,
+		},
 		inquiries: {
 			path: `/${path}/inquiries`,
 		},

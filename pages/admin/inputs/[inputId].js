@@ -177,20 +177,20 @@ function InputDetailPage() {
 										sx={{
 											p: 2,
 											mb: 2,
-											bgcolor: reply.isAdmin ? "primary.50" : "grey.50",
+											bgcolor: reply.userRole === "Admin" ? "primary.50" : "grey.50",
 											borderLeft: 4,
-											borderLeftColor: reply.isAdmin ? "primary.main" : "grey.400",
+											borderLeftColor: reply.userRole === "Admin" ? "primary.main" : "success.main",
 										}}
 									>
 										<Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-											<Typography variant="caption" fontWeight={600} color={reply.isAdmin ? "primary.main" : "text.secondary"}>
-												{reply.isAdmin ? "Admin" : (input.studentName || "Student")}
+											<Typography variant="caption" fontWeight={600} color={reply.userRole === "Admin" ? "primary.main" : "success.main"}>
+												{reply.userRole === "Admin" ? "Admin" : (input.studentName || "Student")}
 											</Typography>
 											<Typography variant="caption" color="text.secondary">
 												{DateTime.fromISO(reply.createdAt).toFormat("MMM dd, yyyy 'at' hh:mm a")}
 											</Typography>
 										</Box>
-										<Typography variant="body2">{reply.body}</Typography>
+										<Typography variant="body2">{reply.message}</Typography>
 									</Paper>
 								))}
 							</Box>

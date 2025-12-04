@@ -320,13 +320,18 @@ export const RevealStatus = {
  */
 
 /**
+ * @typedef {Object} ReplyUserInfo
+ * @property {string} id
+ * @property {string} [firstName]
+ * @property {string} [lastName]
+ */
+
+/**
  * @typedef {Object} InputReplyDto
  * @property {string} id
- * @property {string} inputId
- * @property {string} userId
- * @property {string} userName
- * @property {Role} userRole
  * @property {string} message
+ * @property {string} userRole - "Admin" or "Student"
+ * @property {ReplyUserInfo} user
  * @property {string} createdAt
  */
 
