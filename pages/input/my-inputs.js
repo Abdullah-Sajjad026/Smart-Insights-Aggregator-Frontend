@@ -92,7 +92,7 @@ function MyInputsPage() {
 										{data.pagination?.totalItems || 0}
 									</Typography>
 								</Box>
-								<Box>
+								{/* <Box>
 									<Typography variant="caption" color="text.secondary">
 										Resolved
 									</Typography>
@@ -107,7 +107,7 @@ function MyInputsPage() {
 									<Typography variant="h6" fontWeight={600} color="warning.main">
 										{data.data?.filter(i => i.status === InputStatus.Pending).length || 0}
 									</Typography>
-								</Box>
+								</Box> */}
 							</Box>
 
 							{/* Inputs List */}
@@ -118,7 +118,7 @@ function MyInputsPage() {
 											<InputCard
 												key={input.id}
 												input={input}
-												showAIAnalysis={true}
+												showAIAnalysis={false}
 												showInquiryLink={true}
 												onClick={() => router.push(`/input/${input.id}`)}
 											/>

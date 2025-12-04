@@ -149,7 +149,7 @@ function StudentInputDetailPage() {
 					{/* Input Card */}
 					<InputCard
 						input={input}
-						showAIAnalysis={true}
+						showAIAnalysis={false}
 						showInquiryLink={true}
 					/>
 
