@@ -1,5 +1,6 @@
 import React from "react";
 import Chip from "@mui/material/Chip";
+import Tooltip from "@mui/material/Tooltip";
 import LabelIcon from "@mui/icons-material/Label";
 
 /**
@@ -20,19 +21,24 @@ export function ThemeChip({
 		return null;
 	}
 
+	const tooltipText = `Theme: ${theme} - AI has automatically categorized this feedback into this thematic area based on the content. This helps group similar feedback together for pattern recognition.`;
+
 	return (
-		<Chip
-			label={theme}
-			variant={variant}
-			size="small"
-			icon={showIcon ? <LabelIcon /> : undefined}
-			color="primary"
-			sx={{
-				fontWeight: 500,
-				...chipProps.sx,
-			}}
-			{...chipProps}
-		/>
+		<Tooltip title={tooltipText} arrow placement="top">
+			<Chip
+				label={theme}
+				variant={variant}
+				size="small"
+				icon={showIcon ? <LabelIcon /> : undefined}
+				color="primary"
+				sx={{
+					fontWeight: 500,
+					cursor: "help",
+					...chipProps.sx,
+				}}
+				{...chipProps}
+			/>
+		</Tooltip>
 	);
 }
 

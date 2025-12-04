@@ -3,11 +3,16 @@ import CardContent from "@mui/material/CardContent";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
+import Badge from "@mui/material/Badge";
+import Tooltip from "@mui/material/Tooltip";
+import ForumIcon from "@mui/icons-material/Forum";
 import { DateTime } from "luxon";
 import {
 	ImportanceBadge,
 	SentimentIndicator,
 	ThemeChip,
+	ToneIndicator,
+	SeverityBadge,
 } from "modules/shared/components";
 
 /**
@@ -53,7 +58,7 @@ export function InputCard({
 						mb: 2,
 					}}
 				>
-					<Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+					<Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
 						<Chip
 							label={
 								input.type === "InquiryLinked"
@@ -77,6 +82,16 @@ export function InputCard({
 											? "warning"
 											: "default"
 								}
+							/>
+						)}
+						{/* Reply Count Indicator */}
+						{input.replyCount > 0 && (
+							<Chip
+								icon={<ForumIcon />}
+								label={`${input.replyCount} ${input.replyCount === 1 ? "reply" : "replies"}`}
+								size="small"
+								color="info"
+								variant="outlined"
 							/>
 						)}
 					</Box>
@@ -110,7 +125,7 @@ export function InputCard({
 				</Typography>
 
 				{/* AI Analysis Section */}
-				{showAIAnalysis && input.aiAnalysis && (
+				{showAIAnalysis && (input.sentiment || input.tone || input.metrics || input.theme || input.topic) && (
 					<Box
 						sx={{
 							mt: 2,
@@ -128,22 +143,43 @@ export function InputCard({
 						</Typography>
 
 						<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
-							{input.aiAnalysis.theme && (
-								<ThemeChip theme={input.aiAnalysis.theme} />
+							{/* Severity (High/Medium/Low) - Most important */}
+							{input.metrics?.severity && (
+								<SeverityBadge severity={input.metrics.severity} />
 							)}
-							{input.aiAnalysis.sentiment && (
-								<SentimentIndicator sentiment={input.aiAnalysis.sentiment} />
+
+							{/* Sentiment */}
+							{input.sentiment && (
+								<SentimentIndicator sentiment={input.sentiment.toUpperCase()} />
 							)}
-							{input.aiAnalysis.importance && (
-								<ImportanceBadge importance={input.aiAnalysis.importance} />
+
+							{/* Tone */}
+							{input.tone && (
+								<ToneIndicator tone={input.tone} />
+							)}
+
+							{/* Theme (if available) */}
+							{input.theme?.name && (
+								<ThemeChip theme={input.theme.name} />
+							)}
+
+							{/* Topic (if available) */}
+							{input.topic?.name && (
+								<Tooltip
+									title={`Topic: ${input.topic.name} - Administrator-managed category for organizing and tracking feedback by specific areas or departments.`}
+									arrow
+									placement="top"
+								>
+									<Chip
+										label={input.topic.name}
+										size="small"
+										variant="outlined"
+										color="secondary"
+										sx={{ cursor: "help" }}
+									/>
+								</Tooltip>
 							)}
 						</Box>
-
-						{input.aiAnalysis.summary && (
-							<Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-								{input.aiAnalysis.summary}
-							</Typography>
-						)}
 					</Box>
 				)}
 
