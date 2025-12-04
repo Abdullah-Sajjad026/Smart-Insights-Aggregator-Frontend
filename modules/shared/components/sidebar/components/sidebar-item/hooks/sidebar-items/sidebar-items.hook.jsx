@@ -79,13 +79,13 @@ function useAdminSidebarItems() {
 				path: "/admin/semesters",
 			},
 		},
-		{
-			label: "Monitoring",
-			icon: DashboardOutlined,
-			buttonProps: {
-				path: "/admin/monitoring",
-			},
-		},
+		// {
+		// 	label: "Monitoring",
+		// 	icon: DashboardOutlined,
+		// 	buttonProps: {
+		// 		path: "/admin/monitoring",
+		// 	},
+		// },
 	];
 }
 
