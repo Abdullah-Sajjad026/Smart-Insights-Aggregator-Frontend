@@ -16,13 +16,13 @@ import { LoadingButton } from "modules/shared";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
-import { useImportUsersMutation } from "../../apis";
+import { useImportUsersInviteMutation } from "../../apis";
 import { toast } from "react-toastify";
 
 export const ImportUsersDialog = ({ open, onClose }) => {
 	const [file, setFile] = useState(null);
 	const [importResult, setImportResult] = useState(null);
-	const importUsersMutation = useImportUsersMutation();
+	const importUsersMutation = useImportUsersInviteMutation();
 
 	const handleFileChange = (event) => {
 		const selectedFile = event.target.files[0];
@@ -41,7 +41,7 @@ export const ImportUsersDialog = ({ open, onClose }) => {
 			onSuccess: (data) => {
 				setImportResult(data);
 				if (data.failureCount === 0) {
-					toast.success(`${data.successCount} users imported successfully`);
+					toast.success(`${data.successCount} invitation emails sent successfully`);
 					setTimeout(() => {
 						handleClose();
 					}, 2000);
@@ -50,7 +50,7 @@ export const ImportUsersDialog = ({ open, onClose }) => {
 				}
 			},
 			onError: (error) => {
-				toast.error(error.response?.data?.message || "Failed to import users");
+				toast.error(error.response?.data?.message || "Failed to import and invite users");
 			},
 		});
 	};
@@ -63,21 +63,25 @@ export const ImportUsersDialog = ({ open, onClose }) => {
 
 	return (
 		<Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-			<DialogTitle>Import Users from CSV</DialogTitle>
+			<DialogTitle>Import & Invite Users from CSV</DialogTitle>
 			<DialogContent>
 				{!importResult ? (
 					<>
 						<Box sx={{ mb: 3 }}>
 							<Typography variant="body2" color="text.secondary" paragraph>
-								Upload a CSV file to bulk import users. The CSV should have the following columns in order:
+								Upload a CSV file to bulk import and invite users. The CSV should have the following columns in order:
 							</Typography>
 							<Alert severity="info" sx={{ mb: 2 }}>
-								Email, FirstName, LastName, Password, Department, Program, Semester
+								Email, FirstName, LastName, Department, Program, Semester
 							</Alert>
 							<Typography variant="caption" display="block" gutterBottom>
 								* All imported users will be assigned the "Student" role
 								<br />
 								* Department, Program, and Semester are required (use exact names/values)
+								<br />
+								* Invitation emails will be sent to all users automatically
+								<br />
+								* Users will set their own passwords when accepting invitations
 							</Typography>
 						</Box>
 
@@ -139,7 +143,7 @@ export const ImportUsersDialog = ({ open, onClose }) => {
 														</Typography>
 													) : (
 														<Typography variant="caption" color="text.secondary">
-															Row {result.rowNumber}: Imported successfully
+															Row {result.rowNumber}: Invitation sent successfully
 														</Typography>
 													)
 												}
@@ -161,7 +165,7 @@ export const ImportUsersDialog = ({ open, onClose }) => {
 						loading={importUsersMutation.isPending}
 						disabled={!file}
 					>
-						Import
+						Import & Send Invitations
 					</LoadingButton>
 				)}
 			</DialogActions>

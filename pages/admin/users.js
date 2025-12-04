@@ -37,6 +37,7 @@ import { MainContainer, Loader } from "modules/shared/components";
 import {
 	useGetAllUsers,
 	useCreateUserMutation,
+	useInviteUserMutation,
 	useUpdateUserMutation,
 	useDeleteUserMutation,
 	getAllUsersQueryKey,
@@ -50,13 +51,12 @@ import { getApiErrorMessage } from "modules/shared/shared.utils";
 import { Role } from "types/api";
 import { ROLE_LABELS, roleOptions } from "constants/enums";
 
-// Validation schema for user form
-const createUserSchema = z.object({
+// Validation schema for user form (invitation - no password required)
+const inviteUserSchema = z.object({
 	firstName: z.string().min(2, "First name must be at least 2 characters"),
 	lastName: z.string().min(2, "Last name must be at least 2 characters"),
 	email: z.string().email("Invalid email address"),
 	role: z.nativeEnum(Role),
-	password: z.string().min(6, "Password must be at least 6 characters"),
 	departmentId: z.string().optional().nullable(),
 	programId: z.string().optional().nullable(),
 	semesterId: z.string().optional().nullable(),
@@ -98,7 +98,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 		reset,
 		formState: { errors },
 	} = useForm({
-		resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
+		resolver: zodResolver(isEdit ? updateUserSchema : inviteUserSchema),
 		defaultValues: {
 			firstName: user?.firstName || "",
 			lastName: user?.lastName || "",
@@ -114,15 +114,15 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	const selectedRole = useWatch({ control, name: "role" });
 	const isStudent = selectedRole === Role.Student;
 
-	const createMutation = useCreateUserMutation({
+	const inviteMutation = useInviteUserMutation({
 		onSuccess: response => {
-			toast.success(response.message || "User created successfully!");
+			toast.success(response.message || "User invitation sent successfully!");
 			queryClient.invalidateQueries({queryKey: getAllUsersQueryKey(), exact: false});
 			reset();
 			onClose();
 		},
 		onError: error => {
-			toast.error(getApiErrorMessage(error, "Failed to create user"));
+			toast.error(getApiErrorMessage(error, "Failed to invite user"));
 		},
 	});
 
@@ -159,7 +159,9 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 			}
 			updateMutation.mutate({ id: user.id, data: submissionData });
 		} else {
-			createMutation.mutate(submissionData);
+			// Remove password field for invitations (not needed)
+			delete submissionData.password;
+			inviteMutation.mutate(submissionData);
 		}
 	};
 
@@ -170,7 +172,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 
 	return (
 		<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-			<DialogTitle>{isEdit ? "Edit User" : "Create New User"}</DialogTitle>
+			<DialogTitle>{isEdit ? "Edit User" : "Invite New User"}</DialogTitle>
 			<form onSubmit={handleSubmit(onSubmit)}>
 				<DialogContent>
 					<Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
@@ -315,28 +317,32 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 							</>
 						)}
 
-						<Controller
-							name="password"
-							control={control}
-							render={({ field }) => (
-								<TextField
-									{...field}
-									label={
-										isEdit
-											? "New Password (leave blank to keep current)"
-											: "Password"
-									}
-									type="password"
-									fullWidth
-									error={!!errors.password}
-									helperText={
-										errors.password?.message ||
-										(isEdit ? "Leave blank to keep current password" : "")
-									}
-									required={!isEdit}
-								/>
-							)}
-						/>
+						{isEdit && (
+							<Controller
+								name="password"
+								control={control}
+								render={({ field }) => (
+									<TextField
+										{...field}
+										label="New Password (leave blank to keep current)"
+										type="password"
+										fullWidth
+										error={!!errors.password}
+										helperText={
+											errors.password?.message ||
+											"Leave blank to keep current password"
+										}
+									/>
+								)}
+							/>
+						)}
+
+						{!isEdit && (
+							<Alert severity="info">
+								An invitation email will be sent to the user's email address.
+								They will set their own password when accepting the invitation.
+							</Alert>
+						)}
 					</Box>
 				</DialogContent>
 				<DialogActions>
@@ -347,10 +353,10 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 						type="submit"
 						variant="contained"
 						disabled={
-							isLoading || createMutation.isLoading || updateMutation.isLoading
+							isLoading || inviteMutation.isLoading || updateMutation.isLoading
 						}
 					>
-						{isEdit ? "Update" : "Create"}
+						{isEdit ? "Update" : "Send Invitation"}
 					</Button>
 				</DialogActions>
 			</form>
