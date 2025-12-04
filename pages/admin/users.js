@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -117,7 +117,10 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	const inviteMutation = useInviteUserMutation({
 		onSuccess: response => {
 			toast.success(response.message || "User invitation sent successfully!");
-			queryClient.invalidateQueries({queryKey: getAllUsersQueryKey(), exact: false});
+			queryClient.invalidateQueries({
+				queryKey: getAllUsersQueryKey(),
+				exact: false,
+			});
 			reset();
 			onClose();
 		},
@@ -129,7 +132,10 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 	const updateMutation = useUpdateUserMutation({
 		onSuccess: response => {
 			toast.success(response.message || "User updated successfully!");
-			queryClient.invalidateQueries({queryKey: getAllUsersQueryKey(), exact: false});
+			queryClient.invalidateQueries({
+				queryKey: getAllUsersQueryKey(),
+				exact: false,
+			});
 			reset();
 			onClose();
 		},
@@ -169,6 +175,30 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 		reset();
 		onClose();
 	};
+
+	useEffect(() => {
+		if (user) {
+			reset({
+				firstName: user.firstName || "",
+				lastName: user.lastName || "",
+				email: user.email || "",
+				role: user.role || Role.Student,
+				departmentId: user.departmentId || "",
+				programId: user.programId || "",
+				semesterId: user.semesterId || "",
+			});
+		} else {
+			reset({
+				firstName: "",
+				lastName: "",
+				email: "",
+				role: Role.Student,
+				departmentId: "",
+				programId: "",
+				semesterId: "",
+			});
+		}
+	}, [user, reset]);
 
 	return (
 		<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -317,7 +347,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 							</>
 						)}
 
-						{isEdit && (
+						{/* {isEdit && (
 							<Controller
 								name="password"
 								control={control}
@@ -335,7 +365,7 @@ function UserFormDialog({ open, onClose, user = null, isLoading }) {
 									/>
 								)}
 							/>
-						)}
+						)} */}
 
 						{!isEdit && (
 							<Alert severity="info">
