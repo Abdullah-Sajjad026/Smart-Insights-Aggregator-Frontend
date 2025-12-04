@@ -24,13 +24,12 @@ export const getInquiryStatsQueryKey = () => ["inquiries", "stats"];
 /**
  * Select/transform query data
  */
-export const selectInquiryStatsQueryData = (response) => {
+export const selectInquiryStatsQueryData = response => {
 	if (!response) return null;
 	return {
 		totalInquiries: response.total || 0,
-		sentInquiries: response.byStatus?.["Active"] || 0,
-		draftInquiries: response.byStatus?.["Draft"] || 0,
-		closedInquiries: response.byStatus?.["Closed"] || 0,
+		closedInquiries: response.byStatus?.["closed"] || 0,
+		activeInquiries: response.byStatus?.["active"] || 0,
 	};
 };
 
