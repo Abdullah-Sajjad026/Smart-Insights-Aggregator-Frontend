@@ -30,7 +30,7 @@ export function ThemeChip({
 				variant={variant}
 				size="small"
 				icon={showIcon ? <LabelIcon /> : undefined}
-				color="primary"
+				color="default"
 				sx={{
 					fontWeight: 500,
 					cursor: "help",

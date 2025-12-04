@@ -8,11 +8,10 @@ import Tooltip from "@mui/material/Tooltip";
 import ForumIcon from "@mui/icons-material/Forum";
 import { DateTime } from "luxon";
 import {
-	ImportanceBadge,
 	SentimentIndicator,
 	ThemeChip,
 	ToneIndicator,
-	SeverityBadge,
+	ImportanceLevelBadge,
 } from "modules/shared/components";
 
 /**
@@ -43,7 +42,7 @@ export function InputCard({
 					? {
 							boxShadow: 4,
 							transform: "translateY(-2px)",
-						}
+					  }
 					: {},
 			}}
 			onClick={onClick}
@@ -58,18 +57,25 @@ export function InputCard({
 						mb: 2,
 					}}
 				>
-					<Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+					<Box
+						sx={{
+							display: "flex",
+							gap: 1,
+							alignItems: "center",
+							flexWrap: "wrap",
+						}}
+					>
 						<Chip
 							label={
 								input.type === "InquiryLinked"
 									? "Inquiry Response"
 									: input.type === "General"
-										? "General Feedback"
-										: input.type || "Feedback"
+									? "General Feedback"
+									: input.type || "Feedback"
 							}
 							size="small"
-							color={input.type === "InquiryLinked" ? "primary" : "default"}
-							variant="outlined"
+							color={"default"}
+							variant={input.type === "InquiryLinked" ? "filled" : "outlined"}
 						/>
 						{input.status && (
 							<Chip
@@ -78,9 +84,10 @@ export function InputCard({
 								color={
 									input.status === "Reviewed" || input.status === "Processed"
 										? "success"
-										: input.status === "Processing" || input.status === "Pending"
-											? "warning"
-											: "default"
+										: input.status === "Processing" ||
+										  input.status === "Pending"
+										? "warning"
+										: "default"
 								}
 							/>
 						)}
@@ -88,7 +95,9 @@ export function InputCard({
 						{input.replyCount > 0 && (
 							<Chip
 								icon={<ForumIcon />}
-								label={`${input.replyCount} ${input.replyCount === 1 ? "reply" : "replies"}`}
+								label={`${input.replyCount} ${
+									input.replyCount === 1 ? "reply" : "replies"
+								}`}
 								size="small"
 								color="info"
 								variant="outlined"
@@ -125,63 +134,115 @@ export function InputCard({
 				</Typography>
 
 				{/* AI Analysis Section */}
-				{showAIAnalysis && (input.sentiment || input.tone || input.metrics || input.theme || input.topic) && (
-					<Box
-						sx={{
-							mt: 2,
-							pt: 2,
-							borderTop: "1px solid",
-							borderColor: "divider",
-						}}
-					>
-						<Typography
-							variant="caption"
-							color="text.secondary"
-							sx={{ mb: 1, display: "block" }}
+				{showAIAnalysis &&
+					(input.sentiment ||
+						input.tone ||
+						input.metrics ||
+						input.theme ||
+						input.topic) && (
+						<Box
+							sx={{
+								mt: 2,
+								pt: 2,
+								borderTop: "1px solid",
+								borderColor: "divider",
+							}}
 						>
-							AI Analysis
-						</Typography>
+							<Typography
+								variant="caption"
+								color="text.secondary"
+								sx={{ mb: 2, display: "block", fontWeight: 600 }}
+							>
+								AI Analysis
+							</Typography>
 
-						<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
-							{/* Severity (High/Medium/Low) - Most important */}
-							{input.metrics?.severity && (
-								<SeverityBadge severity={input.metrics.severity} />
-							)}
+							<Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+								{/* Importance Level */}
+								{input.metrics?.severity && (
+									<Box>
+										<Typography
+											variant="caption"
+											color="text.secondary"
+											sx={{ display: "block", mb: 0.5, fontSize: "0.7rem" }}
+										>
+											Importance
+										</Typography>
+										<ImportanceLevelBadge importance={input.metrics.severity} />
+									</Box>
+								)}
 
-							{/* Sentiment */}
-							{input.sentiment && (
-								<SentimentIndicator sentiment={input.sentiment.toUpperCase()} />
-							)}
+								{/* Sentiment */}
+								{input.sentiment && (
+									<Box>
+										<Typography
+											variant="caption"
+											color="text.secondary"
+											sx={{ display: "block", mb: 0.5, fontSize: "0.7rem" }}
+										>
+											Sentiment
+										</Typography>
+										<SentimentIndicator
+											sentiment={input.sentiment.toUpperCase()}
+										/>
+									</Box>
+								)}
 
-							{/* Tone */}
-							{input.tone && (
-								<ToneIndicator tone={input.tone} />
-							)}
+								{/* Tone */}
+								{input.tone && (
+									<Box>
+										<Typography
+											variant="caption"
+											color="text.secondary"
+											sx={{ display: "block", mb: 0.5, fontSize: "0.7rem" }}
+										>
+											Tone
+										</Typography>
+										<ToneIndicator tone={input.tone} />
+									</Box>
+								)}
 
-							{/* Theme (if available) */}
-							{input.theme?.name && (
-								<ThemeChip theme={input.theme.name} />
-							)}
+								{/* Theme */}
+								{input.theme?.name && (
+									<Box>
+										<Typography
+											variant="caption"
+											color="text.secondary"
+											sx={{ display: "block", mb: 0.5, fontSize: "0.7rem" }}
+										>
+											Theme
+										</Typography>
+										<ThemeChip theme={input.theme.name} />
+									</Box>
+								)}
 
-							{/* Topic (if available) */}
-							{input.topic?.name && (
-								<Tooltip
-									title={`Topic: ${input.topic.name} - Administrator-managed category for organizing and tracking feedback by specific areas or departments.`}
-									arrow
-									placement="top"
-								>
-									<Chip
-										label={input.topic.name}
-										size="small"
-										variant="outlined"
-										color="secondary"
-										sx={{ cursor: "help" }}
-									/>
-								</Tooltip>
-							)}
+								{/* Topic */}
+								{input.topic?.name && (
+									<Box>
+										<Typography
+											variant="caption"
+											color="text.secondary"
+											sx={{ display: "block", mb: 0.5, fontSize: "0.7rem" }}
+										>
+											Topic
+										</Typography>
+										<Tooltip
+											title={`Topic: ${input.topic.name} - Administrator-managed category for organizing and tracking feedback by specific areas or departments.`}
+											arrow
+											placement="top"
+										>
+											<Chip
+												label={input.topic.name}
+												size="small"
+												variant="outlined"
+												color="secondary"
+												sx={{ cursor: "help" }}
+											/>
+										</Tooltip>
+									</Box>
+								)}
+							</Box>
 						</Box>
-					</Box>
-				)}
+					)}
 
 				{/* Student Metadata (for admin view) */}
 				{input.department && input.program && (

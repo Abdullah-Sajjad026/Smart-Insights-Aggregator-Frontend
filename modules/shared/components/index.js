@@ -29,5 +29,6 @@ export * from "./sentiment-indicator";
 export * from "./theme-chip";
 export * from "./tone-indicator";
 export * from "./severity-badge";
+export * from "./importance-level-badge";
 export * from "./ai-summary-card";
 export * from "./stats-overview";
