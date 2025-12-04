@@ -116,6 +116,13 @@ function useStudentSidebarItems() {
 			},
 		},
 		{
+			label: "My Impact",
+			icon: TopicOutlined,
+			buttonProps: {
+				path: "/student/impact",
+			},
+		},
+		{
 			label: "Active Inquiries",
 			icon: SearchOutlined,
 			buttonProps: {

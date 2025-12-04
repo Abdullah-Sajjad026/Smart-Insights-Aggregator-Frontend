@@ -20,6 +20,20 @@ import { toast } from "react-toastify";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { InputCard } from "modules/input";
 import { withAdmin } from "modules/user";
+import {
+	useUpdateTopicStatusMutation,
+	usePostTopicUpdateMutation,
+} from "modules/topic";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import EditIcon from "@mui/icons-material/Edit";
+import SendIcon from "@mui/icons-material/Send";
+import CircleIcon from "@mui/icons-material/Circle";
+import { Stack } from "@mui/material";
 
 function TabPanel({ children, value, index }) {
 	return (
@@ -33,6 +47,11 @@ function TopicDetailPage() {
 	const router = useRouter();
 	const { topicId } = router.query;
 	const [activeTab, setActiveTab] = useState(0);
+	const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+	const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+	const [statusMessage, setStatusMessage] = useState("");
+	const [selectedStatus, setSelectedStatus] = useState("");
+	const [updateMessage, setUpdateMessage] = useState("");
 
 	// Fetch topic details
 	const { data: topic, isLoading, isError } = useGetTopicById(topicId, {
@@ -75,6 +94,47 @@ function TopicDetailPage() {
 		if (confirm("Are you sure you want to archive this topic?")) {
 			archiveMutation.mutate(topicId);
 		}
+	};
+
+	const updateStatusMutation = useUpdateTopicStatusMutation({
+		onSuccess: () => {
+			setStatusDialogOpen(false);
+			setStatusMessage("");
+		},
+	});
+
+	const postUpdateMutation = usePostTopicUpdateMutation({
+		onSuccess: () => {
+			setUpdateDialogOpen(false);
+			setUpdateMessage("");
+		},
+	});
+
+	const handleStatusUpdate = () => {
+		if (!selectedStatus) return;
+		updateStatusMutation.mutate({
+			topicId,
+			data: {
+				status: selectedStatus,
+				message: statusMessage,
+			},
+		});
+	};
+
+	const handlePostUpdate = () => {
+		if (!updateMessage) return;
+		postUpdateMutation.mutate({
+			topicId,
+			data: {
+				message: updateMessage,
+			},
+		});
+	};
+
+	const openStatusDialog = () => {
+		setSelectedStatus(topic?.status || "Submitted");
+		setStatusMessage("");
+		setStatusDialogOpen(true);
 	};
 
 	// Loading state
@@ -175,10 +235,37 @@ function TopicDetailPage() {
 									sx={{ fontWeight: 600 }}
 								/>
 							)} */}
+
 						</Box>
+						<Stack direction="row" justifyContent="space-between" alignItems="center" gap={2} >
 						<Typography variant="body1" color="text.secondary">
 							Topic created on {DateTime.fromISO(topic.createdAt).toFormat("MMMM dd, yyyy")}
 						</Typography>
+						<Stack direction="row" gap={2} alignItems="center">
+							<Chip
+								label={topic.status || "Submitted"}
+								color={
+									topic.status === "Completed"
+										? "success"
+										: topic.status === "InProgress"
+										? "info"
+										: topic.status === "Rejected"
+										? "error"
+										: "default"
+								}
+								variant="filled"
+								size="medium"
+								sx={{ fontWeight: 600 }}
+							/>
+							<Button
+								size="small"
+								startIcon={<EditIcon />}
+								onClick={openStatusDialog}
+							>
+								Change Status
+							</Button>
+						</Stack>
+						</Stack>
 					</Box>
 
 					{/* Stats Overview */}
@@ -189,6 +276,7 @@ function TopicDetailPage() {
 						<Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
 							<Tab label="Overview" />
 							<Tab label={`Responses (${topic.inputCount || 0})`} />
+							<Tab label={`Updates (${topic.updates?.length || 0})`} />
 						</Tabs>
 
 						{/* Tab 1: Overview */}
@@ -248,8 +336,174 @@ function TopicDetailPage() {
 							)}
 							</Box>
 						</TabPanel>
+						{/* Tab 3: Updates */}
+						<TabPanel value={activeTab} index={2}>
+							<Box sx={{ px: 3 }}>
+								<Box sx={{ mb: 3, display: "flex", justifyContent: "flex-end" }}>
+									<Button
+										variant="contained"
+										startIcon={<SendIcon />}
+										onClick={() => setUpdateDialogOpen(true)}
+									>
+										Post Update
+									</Button>
+								</Box>
+
+								{topic.updates && topic.updates.length > 0 ? (
+									<Box sx={{ mt: 2 }}>
+										{topic.updates.map((update, index) => (
+											<Box key={update.id} sx={{ display: "flex", mb: 3 }}>
+												{/* Time and Author */}
+												<Box sx={{ minWidth: 120, textAlign: "right", mr: 2, pt: 0.5 }}>
+													<Typography variant="body2" color="text.secondary" fontWeight={500}>
+														{DateTime.fromISO(update.createdAt).toFormat("MMM dd, HH:mm")}
+													</Typography>
+													<Typography variant="caption" color="text.secondary">
+														{update.adminName}
+													</Typography>
+												</Box>
+
+												{/* Timeline Line and Dot */}
+												<Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mr: 2 }}>
+													<Box
+														sx={{
+															width: 32,
+															height: 32,
+															borderRadius: "50%",
+															bgcolor: update.newStatus ? "primary.main" : "grey.300",
+															display: "flex",
+															alignItems: "center",
+															justifyContent: "center",
+															color: "white",
+															zIndex: 1,
+														}}
+													>
+														{update.newStatus ? (
+															<EditIcon fontSize="small" />
+														) : (
+															<SendIcon fontSize="small" />
+														)}
+													</Box>
+													{index < topic.updates.length - 1 && (
+														<Box
+															sx={{
+																width: 2,
+																flexGrow: 1,
+																bgcolor: "grey.300",
+																my: 0.5,
+															}}
+														/>
+													)}
+												</Box>
+
+												{/* Content */}
+												<Box sx={{ flexGrow: 1, pb: index < topic.updates.length - 1 ? 2 : 0 }}>
+													<Paper elevation={1} sx={{ p: 2, bgcolor: "grey.50" }}>
+														{update.newStatus && (
+															<Chip
+																label={`Status changed to: ${update.newStatus}`}
+																size="small"
+																color="primary"
+																sx={{ mb: 1 }}
+															/>
+														)}
+														<Typography variant="body1">{update.message}</Typography>
+													</Paper>
+												</Box>
+											</Box>
+										))}
+									</Box>
+								) : (
+									<Alert severity="info">
+										No updates posted yet. Post an update to inform students about
+										progress.
+									</Alert>
+								)}
+							</Box>
+						</TabPanel>
 					</Paper>
 				</Box>
+
+				{/* Status Update Dialog */}
+				<Dialog
+					open={statusDialogOpen}
+					onClose={() => setStatusDialogOpen(false)}
+					maxWidth="sm"
+					fullWidth
+				>
+					<DialogTitle>Update Topic Status</DialogTitle>
+					<DialogContent>
+						<Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 3 }}>
+							<TextField
+								select
+								label="Status"
+								value={selectedStatus}
+								onChange={e => setSelectedStatus(e.target.value)}
+								fullWidth
+							>
+								<MenuItem value="Submitted">Submitted</MenuItem>
+								<MenuItem value="UnderReview">Under Review</MenuItem>
+								<MenuItem value="InProgress">In Progress</MenuItem>
+								<MenuItem value="Completed">Completed</MenuItem>
+								<MenuItem value="Planned">Planned</MenuItem>
+								<MenuItem value="Rejected">Rejected</MenuItem>
+							</TextField>
+							<TextField
+								label="Message (Optional)"
+								multiline
+								rows={3}
+								value={statusMessage}
+								onChange={e => setStatusMessage(e.target.value)}
+								placeholder="Explain why the status is changing..."
+								fullWidth
+							/>
+						</Box>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
+						<Button
+							onClick={handleStatusUpdate}
+							variant="contained"
+							disabled={updateStatusMutation.isLoading}
+						>
+							Update Status
+						</Button>
+					</DialogActions>
+				</Dialog>
+
+				{/* Post Update Dialog */}
+				<Dialog
+					open={updateDialogOpen}
+					onClose={() => setUpdateDialogOpen(false)}
+					maxWidth="sm"
+					fullWidth
+				>
+					<DialogTitle>Post Update</DialogTitle>
+					<DialogContent>
+						<Box sx={{ mt: 2 }}>
+							<TextField
+								label="Update Message"
+								multiline
+								rows={4}
+								value={updateMessage}
+								onChange={e => setUpdateMessage(e.target.value)}
+								placeholder="Share progress or information with students..."
+								fullWidth
+								required
+							/>
+						</Box>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
+						<Button
+							onClick={handlePostUpdate}
+							variant="contained"
+							disabled={postUpdateMutation.isLoading || !updateMessage}
+						>
+							Post Update
+						</Button>
+					</DialogActions>
+				</Dialog>
 			</MainContainer>
 		</RootLayout>
 	);
